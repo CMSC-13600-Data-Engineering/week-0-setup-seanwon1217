@@ -21,7 +21,7 @@
 <div class="vertical-center"><p class="p1"><span class="s1">{% extends 'base.html' %} {% block title %}Home{% endblock %} {% block content %} {% if user.is_authenticated %} Hi </span><span class="s2">{{ user.username }}</span><span class="s1">! My name is Ashanah Gayden, I’m a third year student majoring in Anthropology and Data Science and I’m excited to start this class. Hi, I’m Sean. I’m a second year majoring in Economics and Data Science. I’m looking forward to attending more lectures! Class: {{class1}}{% else %}<span class="Apple-converted-space"> </span></span></p></div>
 <p class="p2"><span class="s1"></span><br></p>
 <p class="p3"><span class="s1">You are not logged in</span></p>
-<p class="p1"><span class="s3"><a href="file:///Users/seanwon/Library/CloudStorage/OneDrive-TheUniversityofChicago/Y2/cmsc13600-materials/app/attendancechimp/templates/app/%7B%25%20url%20'login'%20%25%7D">Log In</a></span><span class="s1"> {% endif %} {% endblock %}</span></p>
+<p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span><span class="s1"> {% endif %} {% endblock %}</span></p>
 </center>
 </body>
 </html>
