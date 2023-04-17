@@ -3,6 +3,20 @@ from django.http import HttpResponse
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
+from django.contrib.auth.models import User, Group
+from django import forms
+
+
+
+class SignUpForm(UserCreationForm):
+    name = forms.CharField(max_length=60, required=True, help_text='Required.')
+    user_type = forms.ChoiceField(choices=[('instructor', 'Instructor'), ('student', 'Student')])
+    email = forms.EmailField(max_length=254, help_text='Required. Enter a valid school email address.')
+
+    class Meta:
+        model = User
+        fields = ('username', 'name', 'email', 'user_type', 'password1', 'password2', )
+
 
 
 def index(request):
@@ -11,7 +25,7 @@ def index(request):
 
 def new(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = SignUpForm(request.POST)
         if form.is_valid():
             # Check if the email is already in use
             email = form.cleaned_data.get('email')
@@ -23,7 +37,7 @@ def new(request):
             user = form.save()
 
             # Add the user to the appropriate group
-            user_type = request.POST.get('user_type')
+            user_type = form.cleaned_data.get('user_type')
             if user_type == 'instructor':
                 group = Group.objects.get(name='Instructor')
             else:
@@ -35,8 +49,12 @@ def new(request):
             password = form.cleaned_data.get('password1')
             user = authenticate(request, username=username, password=password)
             login(request, user)
-            return redirect('success')
+            success_msg = 'User account created successfully.'
+            return render(request, 'app/success.html', {'success_msg': success_msg})
     else:
-        form = UserCreationForm()
+        form = SignUpForm()
     return render(request, 'new.html', {'form': form})
 
+
+def success(request):
+    return render(request, 'app/success.html')
