@@ -12,6 +12,7 @@ class SignUpForm(UserCreationForm):
     name = forms.CharField(max_length=60, required=True, help_text='Required.')
     user_type = forms.ChoiceField(choices=[('instructor', 'Instructor'), ('student', 'Student')])
     email = forms.EmailField(max_length=254, help_text='Required. Enter a valid school email address.')
+ user_type = forms.ChoiceField(choices=USER_TYPE_CHOICES, widget=forms.RadioSelect)
 
     class Meta:
         model = User
