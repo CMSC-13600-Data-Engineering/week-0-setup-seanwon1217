@@ -22,6 +22,7 @@ from django.db import models
 class user(models.Model):
     username = models.CharField(max_length=256, null=False)
     userid = models.AutoField(primary_key=True)
+    is_instructor = models.BooleanField()
 
 # the class courses creates a table with each course name and assigns them an ID
 class courses(models.Model):
@@ -29,15 +30,14 @@ class courses(models.Model):
     courseid = models.AutoField(primary_key=True)
              
 # the class in_course creates a table with course's and the people in the course. It then
-# says whether the user is an instructore
+# says whether the user is an instructor
 class in_course(models.Model):
     courseid = models.ForeignKey(courses, on_delete=models.SET_NULL, null=True)
     userid = models.ForeignKey(user, on_delete=models.SET_NULL, null=True)
-    is_instructor = models.BooleanField()
 
 # the class qrCode creates a table with a unique id for each qrCode and with courseid,
 # userid, and time.
-class qrCode(models.Model):
+class Attendance(models.Model):
     qrid = models.AutoField(primary_key=True)
     courseid = models.ForeignKey(courses, on_delete=models.SET_NULL, null=True)
     userid = models.ForeignKey(user, on_delete=models.SET_NULL, null=True)
@@ -49,6 +49,6 @@ def addqrCode (qrid, courseid, userid):
         raise ValueError('No user with the userid' + userid + ' exists in this class')
     if courses.objects.filter(courseid=courseid).count() == 0:
         raise ValueError('No course with the courseid' + courseid + ' exists')
-    new_qrCode = qrCode(qrid=qrid, courseid=courseid, userid=userid, time=datetime.date.today())
+    new_qrCode = Attendance(qrid=qrid, courseid=courseid, userid=userid, time=datetime.date.today())
     new_qrCode.save()
 
