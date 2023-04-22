@@ -28,6 +28,19 @@ class user(models.Model):
 class courses(models.Model):
     coursename = models.CharField(max_length=256, null=False)
     courseid = models.AutoField(primary_key=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    meeting_time = models.CharField(max_length=255)
+    day_of_week = models.CharField(max_length=5)
+
+    #def __str__(self):
+        #return self.name
+
+    #def save(self, *args, **kwargs):
+        #if not self.code:
+            # Generate a unique course code
+            #self.code = str(uuid.uuid4()).replace('-', '')[:16]
+        #super().save(*args, **kwargs)
              
 # the class in_course creates a table with course's and the people in the course. It then
 # says whether the user is an instructor
