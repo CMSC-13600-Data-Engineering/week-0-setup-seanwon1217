@@ -25,13 +25,15 @@ class user(models.Model):
     is_instructor = models.BooleanField()
 
 # the class courses creates a table with each course name and assigns them an ID
+days_of_week = [(1,'Monday'),(2,'Tuesday'),(3,'Wednesday'),(4,'Thursday'),(5,'Friday'),(6,'Saturday'),(7,'Sunday')]
+
 class courses(models.Model):
     coursename = models.CharField(max_length=256, null=False)
     courseid = models.AutoField(primary_key=True)
     start_date = models.DateField()
     end_date = models.DateField()
     meeting_time = models.CharField(max_length=255)
-    day_of_week = models.CharField(max_length=5)
+    day_of_week = models.CharField(max_length=5, choices = days_of_week)
 
     #def __str__(self):
         #return self.name

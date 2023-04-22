@@ -1,14 +1,10 @@
 from django.shortcuts import render
-from django.http import HttpResponse
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User, Group
 from django import forms
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import courses
-#from .forms import CourseForm
 
 instructor_group, created = Group.objects.get_or_create(name='Instructor')
 student_group, created = Group.objects.get_or_create(name='Student')
