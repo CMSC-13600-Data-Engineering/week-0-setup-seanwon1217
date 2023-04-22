@@ -24,4 +24,3 @@ class CourseForm(ModelForm):
 
 # Creating a form to add a course.
 form = CourseForm()
-
