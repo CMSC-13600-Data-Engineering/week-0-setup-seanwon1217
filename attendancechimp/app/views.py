@@ -1,10 +1,11 @@
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.contrib.auth import login, authenticate
-from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User, Group
 from django import forms
 from django.contrib import messages
+from .forms import SignUpForm, CourseForm
 
 instructor_group, created = Group.objects.get_or_create(name='Instructor')
 student_group, created = Group.objects.get_or_create(name='Student')
@@ -12,19 +13,6 @@ student_group, created = Group.objects.get_or_create(name='Student')
 def index(request):
     classdict = {'class1':'CMSC136'}
     return render(request, 'app/index.html', classdict)
-
-class SignUpForm(UserCreationForm):
-    name = forms.CharField(max_length=60, required=True, help_text='Required.')
-    USER_TYPE_CHOICES = (
-        ('instructor', 'Instructor'),
-        ('student', 'Student'),
-    )
-    email = forms.EmailField(max_length=254, help_text='Required. Enter a valid school email address.')
-    user_type = forms.ChoiceField(choices=USER_TYPE_CHOICES, widget=forms.RadioSelect)
-
-    class Meta:
-        model = User
-        fields = ('username', 'name', 'email', 'user_type', 'password1', 'password2', )
 
 def new(request):
     if request.method == 'POST':
@@ -62,6 +50,24 @@ def success(request):
     return render(request, 'app/success.html')
 
 def create(request):
+    classdict = {'class1':'CMSC136'}
+    if request.user.groups.filter(name='Instructor').exists():
+        if request.method == 'POST':
+            form = CourseForm(request.POST)
+            if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # ...
+            # redirect to a new URL:
+                return HttpResponseRedirect('/thanks/')
+        else:
+            form = CourseForm()
+            return render(request, 'create.html', {'form': form})
+        #return render(request, 'app/create.html', classdict)
+    else:
+        return redirect('templates/registration/login.html')
+        #return render(request, 'app/index.html', classdict) #change to login page redirect
+
+def create_test(request):
     if not request.user.is_instructor:
         return redirect('templates/registration/login.html')
     if request.method == 'POST':

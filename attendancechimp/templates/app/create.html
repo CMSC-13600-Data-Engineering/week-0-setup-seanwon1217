@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2113.5">
+  <style type="text/css">
+    .vertical-center {margin: 0;position: absolute; top: 50%;-ms-transform: translateY(-50%);transform: translateY(-50%);}
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 30.0px Times; color: #000000; -webkit-text-stroke: #000000}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 30.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 14.0px}
+    p.p3 {margin: 0.0px 0.0px 12.0px 0.0px; font: 30.0px Times; color: #000000; -webkit-text-stroke: #000000}
+    span.s1 {font-kerning: none}
+    span.s2 {font-kerning: none; background-color: #ffff0b}
+    span.s3 {text-decoration: underline ; font-kerning: none; color: #0000e9; -webkit-text-stroke: 0px #0000e9}
+  </style>
+</head>
+<body>
+<center>
+<div class="vertical-center"><p class="p1"><span class="s1">{% extends 'base.html' %} {% block title %}Home{% endblock %} {% block content %} {% if user.is_authenticated %} Hi </span><span class="s2">{{ user.username }}</span><span class="s1">! You are an Instructor for Class: {{class1}}
+<p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span><span class="s1"></span></p>
+<p class="p1"><span class="s3"><a href="{% url 'new' %}">Sign Up</a></span><span class="s1"> 
+{% else %}<span class="Apple-converted-space"> </span></span></p></div>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p3"><span class="s1">You are not logged in</span></p>
+<p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span><span class="s1"></span></p>
+<p class="p1"><span class="s3"><a href="{% url 'new' %}">Sign Up</a></span><span class="s1"> 
+
+{% endif %} {% endblock %}</span></p>
+</center>
+</body>
+</html>
