@@ -29,6 +29,13 @@ class SignUpForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('username', 'name', 'email', 'user_type', 'password1', 'password2', )
+def create(request):
+    classdict = {'class1':'CMSC136'}
+    if request.user.groups.filter(name='Instructor').exists():
+        return render(request, 'app/create.html', classdict)
+    else:
+        return render(request, 'app/index.html', classdict)
+
 
 def new(request):
     if request.method == 'POST':
@@ -65,7 +72,7 @@ def new(request):
 def success(request):
     return render(request, 'app/success.html')
 
-def create(request):
+def create_new(request):
     if not request.user.is_instructor:
         return redirect('templates/registration/login.html')
     if request.method == 'POST':
