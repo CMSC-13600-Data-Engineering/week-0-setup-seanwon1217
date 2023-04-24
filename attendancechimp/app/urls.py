@@ -8,7 +8,8 @@ urlpatterns = [
     path('create/', views.create, name='create'),
     path('success/', views.success, name='success'),
     path('course_success/', views.course_success, name='course_success'),
-    path('join/<int:course_id>/', views.join, name='join'),
+    path('join/', views.join, name='join'),
     path('attendance/', views.attendance, name='attendance'),
     path('upload/', views.upload, name='upload'),
+    path('course_list/', views.course_list, name='course_list'),
 ]

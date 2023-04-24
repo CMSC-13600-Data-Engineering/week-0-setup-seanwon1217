@@ -18,7 +18,7 @@ class user(models.Model):
 days_of_week = [('Monday','Monday'),('Tuesday','Tuesday'),('Wednesday','Wednesday'),('Thursday','Thursday'),('Friday','Friday'),('Saturday','Saturday'),('Sunday','Sunday')]
 class Course(models.Model):
     coursename = models.CharField(max_length=256, null=False)
-    courseid = models.CharField(max_length=255)
+    course_id = models.CharField(max_length=255)
     start_date = models.DateField()
     end_date = models.DateField()
     class_start_time = models.TimeField()
@@ -27,6 +27,15 @@ class Course(models.Model):
     day_of_week = models.CharField(max_length = 255, choices = days_of_week)
     meeting_days = models.CharField(max_length=255)
     students = models.ManyToManyField(User, related_name='courses_taken')
+    #im not sure about the enrolled student thing
+    #def is_enrolled_in_course_at_same_time(self, course):
+    #for enrolled_course in self.courses_taken.all():
+    #    if enrolled_course.day_of_week == course.day_of_week and enrolled_course.class_start_time <= course.class_end_time and enrolled_course.class_end_time >= course.class_start_time:
+    #        return True
+    #    return False
+    
+
+
 
     #def __str__(self):
         #return self.name
@@ -40,22 +49,22 @@ class Course(models.Model):
 # the class in_course creates a table with course's and the people in the course. It then
 # says whether the user is an instructor
 class in_course(models.Model):
-    courseid = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
+    course_id = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
     userid = models.ForeignKey(user, on_delete=models.SET_NULL, null=True)
 
-# the class qrCode creates a table with a unique id for each qrCode and with courseid,
+# the class qrCode creates a table with a unique id for each qrCode and with course_id,
 # userid, and time.
 class Attendance(models.Model):
     qrid = models.AutoField(primary_key=True)
-    courseid = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
+    course_id = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
     userid = models.ForeignKey(user, on_delete=models.SET_NULL, null=True)
     time = models.DateTimeField(auto_now=False, auto_now_add=False)
 
 # the definition addqrCode makes a new qrCode when called.
-def addqrCode (qrid, courseid, userid):
+def addqrCode (qrid, course_id, userid):
     if in_course.objects.filter(userid=userid).count() == 0:
         raise ValueError('No user with the userid' + userid + ' exists in this class')
-    if Course.objects.filter(courseid=courseid).count() == 0:
-        raise ValueError('No course with the courseid' + courseid + ' exists')
-    new_qrCode = Attendance(qrid=qrid, courseid=courseid, userid=userid, time=datetime.date.today())
+    if Course.objects.filter(course_id=course_id).count() == 0:
+        raise ValueError('No course with the course_id' + course_id + ' exists')
+    new_qrCode = Attendance(qrid=qrid, course_id=course_id, userid=userid, time=datetime.date.today())
     new_qrCode.save()

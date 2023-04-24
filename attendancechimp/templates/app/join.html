@@ -18,8 +18,8 @@
 	</style>
 </head>
 <body> 
-<h1>{{ course.name }}</h1>
-<p>{{ course.number }}</p>
+<h1>{{ course.coursename }}</h1>
+<p>{{ course.courseid }}</p>
 <form method="post">
   {% csrf_token %}
   <button type="submit" class="btn btn-primary">Join</button>

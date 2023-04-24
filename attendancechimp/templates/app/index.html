@@ -1,64 +1,28 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title></title>
-  <style>
-    .vertical-center {
-      margin: 0;
-      position: absolute;
-      top: 50%;
-      -ms-transform: translateY(-50%);
-      transform: translateY(-50%);
-    }
-    p.p1 {
-      margin: 0;
-      font: 30px Times;
-      color: #000000;
-      -webkit-text-stroke: #000000;
-    }
-    p.p2 {
-      margin: 0;
-      font: 30px Times;
-      color: #000000;
-      -webkit-text-stroke: #000000;
-      min-height: 14px;
-    }
-    p.p3 {
-      margin: 0;
-      font: 30px Times;
-      color: #000000;
-      -webkit-text-stroke: #000000;
-    }
-    span.s1 {
-      font-kerning: none;
-    }
-    span.s2 {
-      font-kerning: none;
-      background-color: #ffff0b;
-    }
-    span.s3 {
-      text-decoration: underline;
-      font-kerning: none;
-      color: #0000e9;
-      -webkit-text-stroke: 0px #0000e9;
-    }
-  </style>
-</head>
-<body>
-  <center>
-    <div class="vertical-center">
-      {% extends 'base.html' %}
-      {% block title %}Home{% endblock %}
-      {% block content %}
+<center><div style="font-size: 16px;">
+    {% extends 'base.html' %}
+    {% block title %}Home{% endblock %}
+    {% block content %}
+    <title>Home</title>
+    <style>
+        html, body {
+            height: 100%;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+    <body>
         {% if user.is_authenticated %}
           <p class="p1">
-            <span class="s1">Hi </span>
-            <span class="s2">{{ user.username }}</span>
-            <span class="s1">! My name is Ashanah Gayden, I’m a third year student majoring in Anthropology and Data Science and I’m excited to start this class. Hi, I’m Sean. I’m a second year majoring in Economics and Data Science. I’m looking forward to attending more lectures! Class: {{class1}}</span>
+            <span class="s3">Hi </span>
+            <span class="s3">{{ user.username }}</span>
+            <span class="s3">! My name is Ashanah Gayden, I’m a third year student majoring in Anthropology and Data Science and I’m excited to start this class. Hi, I’m Sean. I’m a second year majoring in Economics and Data Science. I’m looking forward to attending more lectures! Class: {{class1}}</span>
           </p>
           <p class="p1">
-            <span class="s3"><a href="{% url 'login' %}">Log In</a></span>
+            <span class="s3"><a href="{% url 'course_list' %}">Course List</a></span>
             <span class="s1"></span>
           </p>
           <p class="p1">
@@ -76,8 +40,6 @@
             <span class="s1"></span>
           </p>
         {% endif %}
-      {% endblock %}
-    </div>
-  </center>
-</body>
-</html>
+    {% endblock %}
+    </body>
+</div></center>
