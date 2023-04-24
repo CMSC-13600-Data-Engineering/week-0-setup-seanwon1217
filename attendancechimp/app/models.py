@@ -30,15 +30,17 @@ class user(models.Model):
     username = models.CharField(max_length=256, null=False)
 
 # the class courses creates a table with each course name and assigns them an ID
-days_of_week = [(1,'Monday'),(2,'Tuesday'),(3,'Wednesday'),(4,'Thursday'),(5,'Friday'),(6,'Saturday'),(7,'Sunday')]
-
+days_of_week = [('Monday','Monday'),('Tuesday','Tuesday'),('Wednesday','Wednesday'),('Thursday','Thursday'),('Friday','Friday'),('Saturday','Saturday'),('Sunday','Sunday')]
 class Course(models.Model):
     coursename = models.CharField(max_length=256, null=False)
     courseid = models.CharField(max_length=255)
     start_date = models.DateField()
     end_date = models.DateField()
+    class_start_time = models.TimeField(verbose_name='Class start time (e.g. 14:00)', error_messages={'null':'Please enter a start time.'})
+    class_end_time = models.TimeField(verbose_name='Class end time (e.g. 15:20)', error_messages={'null':'Please enter an end time.'})
     instructor = models.ForeignKey(User, on_delete=models.CASCADE)
-
+    day_of_week = models.CharField(max_length = 255, choices = days_of_week)
+    
     #def __str__(self):
         #return self.name
 

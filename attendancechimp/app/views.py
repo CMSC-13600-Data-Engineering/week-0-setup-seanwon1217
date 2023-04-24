@@ -95,12 +95,13 @@ def create(request):
         if form.is_valid():
             start_date = form.cleaned_data['start_date']
             end_date = form.cleaned_data['end_date']
+            
             course = form.save(commit=False)
             course.instructor = request.user
-            for course in Course.objects.filter(instructor_id=app_user)
             course.save()
             messages.success(request, 'Course created successfully.')
             return redirect(reverse('login'))
+        #return redirect('success', course.code)
     else:
         form = CourseForm()
     return render(request, 'app/create.html', {'form': form})
