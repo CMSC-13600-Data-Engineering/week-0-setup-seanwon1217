@@ -10,6 +10,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import user, Course, in_course, Attendance
 from django.urls import reverse
+from django.utils.crypto import get_random_string
+from datetime import datetime
 
 
 instructor_group, created = Group.objects.get_or_create(name='Instructor')
@@ -44,9 +46,37 @@ def join(request):
 
     
 def attendance(request):
-    if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
-        #display qr
+    course_code = request.GET.get('course_id', None) or request.POST.get('course_id', None)
+    if not course_code:
+        return HttpResponse("Course id not found")
+
+    course_id = get_object_or_404(Course, course_id=course_code)
+
+    if not request.user.is_authenticated or not request.user.groups.filter(name='Instructor').exists():
         return redirect(reverse('login'))
+
+    if not course_id.instructor == request.user:
+        return redirect(reverse('login'))
+
+    class_code = Attendance.generate_class_code(course_id=course_id)
+    now = datetime.now()
+    Attendance.objects.create(course_id=course_id, class_code=class_code, time=now)
+
+    request.session['class_code'] = class_code
+    request.session['course_id'] = course_code
+
+    qr_image_url = get_random_string(length=32) + class_code
+    course = Course.objects.get(course_id=course_code)
+    courses = Course.objects.all() # get all courses
+    return render(request, 'app/attendance.html', {'courses': courses, 'class1': course.coursename + course.course_id, 'class_code': class_code, 'qr_image_url': qr_image_url})
+
+def upload(request):
+    if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
+        # upload qr
+        return redirect(reverse('login'))
+    else:
+        return redirect(reverse('login'))
+
 def upload(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
         #upload qr

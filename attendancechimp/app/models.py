@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+from django.utils.crypto import get_random_string
+
 
 # Create your models here.
 # There will be two classes of users: students and instructorss.
@@ -58,7 +61,17 @@ class Attendance(models.Model):
     qrid = models.AutoField(primary_key=True)
     course_id = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
     userid = models.ForeignKey(user, on_delete=models.SET_NULL, null=True)
-    time = models.DateTimeField(auto_now=False, auto_now_add=False)
+    class_code = models.CharField(max_length=64)
+    time = models.DateTimeField(default=timezone.now)
+    @classmethod
+    def generate_class_code(cls, course_id):
+        # Generate a random string for class code
+        class_code = get_random_string(length=32)
+        # Create an Attendance object with course and class code
+        attendance = cls(course_id=course_id, class_code=class_code)
+        attendance.save()
+        # Return the class code
+        return class_code
 
 # the definition addqrCode makes a new qrCode when called.
 def addqrCode (qrid, course_id, userid):
