@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<html>
+<head>
+<p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
+	<title>Sign Up</title>
+	<style>
+		html, body {
+			height: 100%;
+		}
+		body {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+	</style>
+</head>
+<body>
+  <h1>Success!</h1>
+  <p>You have successfully created your class.</p>
+  <p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span><span class="s1"></span></p>
+  <p class="p1"><span class="s3"><a href="{% url 'new' %}">Sign Up</a></span><span class="s1"> 
+  <p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
+
+{% endblock %}
