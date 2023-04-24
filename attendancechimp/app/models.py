@@ -24,26 +24,17 @@ class user(models.Model):
     userid = models.AutoField(primary_key=True)
     is_instructor = models.BooleanField()
 
-# the class courses creates a table with each course name and assigns them an ID
-days_of_week = [(1,'Monday'),(2,'Tuesday'),(3,'Wednesday'),(4,'Thursday'),(5,'Friday'),(6,'Saturday'),(7,'Sunday')]
-
+# the class courses creates a table of courses
+days_of_week = [('Monday','Monday'),('Tuesday','Tuesday'),('Wednesday','Wednesday'),('Thursday','Thursday'),('Friday','Friday'),('Saturday','Saturday'),('Sunday','Sunday')]
 class courses(models.Model):
     coursename = models.CharField(max_length=256, null=False)
-    courseid = models.AutoField(primary_key=True)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    meeting_time = models.CharField(max_length=255)
-    day_of_week = models.CharField(max_length=5, choices = days_of_week)
+    courseid = models.IntegerField(unique=True, primary_key=True)
+    start_date = models.DateField()#verbose_name='Start date (MM/DD/YY)')
+    end_date = models.DateField()#verbose_name='End date (MM/DD/YY)')
+    class_start_time = models.TimeField(verbose_name='Class start time (e.g. 14:00)', error_messages={'null':'Please enter a start time.'})
+    class_end_time = models.TimeField(verbose_name='Class end time (e.g. 15:20)', error_messages={'null':'Please enter an end time.'})
+    day_of_week = models.CharField(max_length = 255, choices = days_of_week)
 
-    #def __str__(self):
-        #return self.name
-
-    #def save(self, *args, **kwargs):
-        #if not self.code:
-            # Generate a unique course code
-            #self.code = str(uuid.uuid4()).replace('-', '')[:16]
-        #super().save(*args, **kwargs)
-             
 # the class in_course creates a table with course's and the people in the course. It then
 # says whether the user is an instructor
 class in_course(models.Model):

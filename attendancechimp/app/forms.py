@@ -20,7 +20,7 @@ class SignUpForm(UserCreationForm):
 class CourseForm(ModelForm):
     class Meta:
         model = courses
-        fields = ["coursename", "courseid", "start_date", "end_date", 'meeting_time', 'day_of_week']
+        fields = ["coursename", "courseid", "start_date", "end_date", 'class_start_time', 'class_end_time', 'day_of_week']
 
 # Creating a form to add a course.
 form = CourseForm()

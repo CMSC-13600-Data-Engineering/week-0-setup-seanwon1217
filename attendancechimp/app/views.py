@@ -6,6 +6,7 @@ from django.contrib.auth.models import User, Group
 from django import forms
 from django.contrib import messages
 from .forms import SignUpForm, CourseForm
+from .models import courses
 
 instructor_group, created = Group.objects.get_or_create(name='Instructor')
 student_group, created = Group.objects.get_or_create(name='Student')
@@ -55,17 +56,25 @@ def create(request):
         if request.method == 'POST':
             form = CourseForm(request.POST)
             if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
-                return HttpResponseRedirect('/thanks/')
+                course = form.save(commit=False)
+                #There is no identical course in the database.
+                courseid = form.cleaned_data.get('courseid')
+                if courses.objects.filter(courseid=courseid).exists():
+                    return render(request, 'create.html', {'form': form, 'error': 'This course already exists.'})
+                    #An instructor is not teaching another course at the same time.
+                    #The end date is before the start date.
+                course.save()
+                #success_msg = 'Course created successfully.'
+                #return render(request, 'app/success.html', {'success_msg': success_msg})
+                return HttpResponseRedirect('success.html')
         else:
             form = CourseForm()
             return render(request, 'create.html', {'form': form})
         #return render(request, 'app/create.html', classdict)
     else:
-        return redirect('templates/registration/login.html')
-        #return render(request, 'app/index.html', classdict) #change to login page redirect
+        form = CourseForm()
+        #return redirect('templates/registration/login.html')
+    return render(request, 'create.html', {'form': form})
 
 def create_test(request):
     if not request.user.is_instructor:
