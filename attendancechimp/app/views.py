@@ -94,16 +94,21 @@ def create(request):
         if request.method == 'POST':
             form = CourseForm(request.POST)
             if form.is_valid():
+                course = form.save(commit=False)
                 start_date = form.cleaned_data['start_date']
                 end_date = form.cleaned_data['end_date']
-            
-                course = form.save(commit=False)
+                start_time = form.cleaned_data['class_start_time']
+                end_time = form.cleaned_data['class_end_time']
+                meeting_days = form.cleaned_data['meeting_days']
+                courseid = form.cleaned_data.get('courseid')
+                #if Course.objects.filter(courseid=courseid).exists():
+                    #messages.error(request, 'This course already exists.')
+                    #return render(request, 'app/create.html', {'form': form})
                 course.instructor = request.user
                 course.save()
                 messages.success(request, 'Course created successfully.')
             return render(request, 'app/course_success.html', {
-                'course_code': new_course.course_code,
-            })
+                'course_code': course.courseid})
         else:
             form = CourseForm()
             return render(request, 'app/create.html', {'form': form})
