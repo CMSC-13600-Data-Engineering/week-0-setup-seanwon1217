@@ -28,7 +28,7 @@ def upload(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
         #upload qr
         return redirect(reverse('login'))
-def course_success(request, code):
+def course_successs(request, code):
     course = Course.objects.get(code=code)
     student_url = reverse('join') + '?course_id=' + str(course.id)
     instructor_url = reverse('attendance') + '?course_id=' + str(course.id)
@@ -75,6 +75,9 @@ def new(request):
 def success(request):
     return render(request, 'app/success.html')
 
+def course_success(request):
+    return render(request, 'app/course_success.html')
+
 @login_required(login_url='/accounts/login/')
 
 @login_required(login_url='/accounts/login/')
@@ -88,20 +91,20 @@ def created(request):
 
 @login_required(login_url='/accounts/login/')
 def create(request):
-    if not request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
-        return redirect(reverse('login'))
-    if request.method == 'POST':
-        form = CourseForm(request.POST)
-        if form.is_valid():
-            start_date = form.cleaned_data['start_date']
-            end_date = form.cleaned_data['end_date']
+    if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
+        if request.method == 'POST':
+            form = CourseForm(request.POST)
+            if form.is_valid():
+                start_date = form.cleaned_data['start_date']
+                end_date = form.cleaned_data['end_date']
             
-            course = form.save(commit=False)
-            course.instructor = request.user
-            course.save()
-            messages.success(request, 'Course created successfully.')
-            return redirect(reverse('login'))
-        #return redirect('success', course.code)
+                course = form.save(commit=False)
+                course.instructor = request.user
+                course.save()
+                messages.success(request, 'Course created successfully.')
+            return render(request, 'app/course_success.html', {'class1': 'CMSC136'})
+        else:
+            form = CourseForm()
+            return render(request, 'app/create.html', {'form': form})
     else:
-        form = CourseForm()
-    return render(request, 'app/create.html', {'form': form})
+        return redirect(reverse('login'))

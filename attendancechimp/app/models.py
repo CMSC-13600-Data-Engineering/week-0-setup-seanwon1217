@@ -36,8 +36,8 @@ class Course(models.Model):
     courseid = models.CharField(max_length=255)
     start_date = models.DateField()
     end_date = models.DateField()
-    class_start_time = models.TimeField(verbose_name='Class start time (e.g. 14:00)', error_messages={'null':'Please enter a start time.'})
-    class_end_time = models.TimeField(verbose_name='Class end time (e.g. 15:20)', error_messages={'null':'Please enter an end time.'})
+    class_start_time = models.TimeField()
+    class_end_time = models.TimeField()
     instructor = models.ForeignKey(User, on_delete=models.CASCADE)
     day_of_week = models.CharField(max_length = 255, choices = days_of_week)
     

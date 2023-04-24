@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.forms import ModelForm
-from app.models import Course
+from .models import Course
 from django.core.exceptions import ValidationError
 
 class SignUpForm(UserCreationForm):
@@ -25,6 +25,8 @@ class CourseForm(ModelForm):
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),
+            'class_start_time': forms.TimeInput(attrs={'type': 'time'}),
+            'class_end_time': forms.TimeInput(attrs={'type': 'time'}),
         }
 
     def clean_code(self):
