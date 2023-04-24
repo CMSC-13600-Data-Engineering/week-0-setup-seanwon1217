@@ -28,6 +28,8 @@ def upload(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
         #upload qr
         return redirect(reverse('login'))
+def course_success(request):
+    return render(request, 'app/course_success.html')
 def course_successs(request, code):
     course = Course.objects.get(code=code)
     student_url = reverse('join') + '?course_id=' + str(course.id)
@@ -75,9 +77,6 @@ def new(request):
 def success(request):
     return render(request, 'app/success.html')
 
-def course_success(request):
-    return render(request, 'app/course_success.html')
-
 @login_required(login_url='/accounts/login/')
 
 @login_required(login_url='/accounts/login/')
@@ -102,7 +101,9 @@ def create(request):
                 course.instructor = request.user
                 course.save()
                 messages.success(request, 'Course created successfully.')
-            return render(request, 'app/course_success.html', {'class1': 'CMSC136'})
+            return render(request, 'app/course_success.html', {
+                'course_code': new_course.course_code,
+            })
         else:
             form = CourseForm()
             return render(request, 'app/create.html', {'form': form})
