@@ -21,7 +21,7 @@ class SignUpForm(UserCreationForm):
 class CourseForm(ModelForm):
     class Meta:
         model = Course
-        fields = ["coursename", "courseid", "start_date", "end_date", 'class_start_time', 'class_end_time', 'day_of_week']
+        fields = ["coursename", "courseid", "start_date", "end_date", 'class_start_time', 'class_end_time', 'day_of_week', 'meeting_days']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),
@@ -42,6 +42,6 @@ class CourseForm(ModelForm):
 
         if start_date and end_date and end_date < start_date:
             raise ValidationError('End date must be after start date.')
-        
+
 # Creating a form to add a course.
 form = CourseForm()

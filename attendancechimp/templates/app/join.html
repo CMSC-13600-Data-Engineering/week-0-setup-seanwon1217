@@ -17,14 +17,13 @@
 		}
 	</style>
 </head>
-<body> {% if user.is_authenticated %} Hi </span><span class="s2">{{ user.username }}</span><span class="s1">! You are an Instructor for Class: {{class1}}
-<p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span><span class="s1"></span></p>
-<p class="p1"><span class="s3"><a href="{% url 'new' %}">Sign Up</a></span><span class="s1"> 
-{% else %}<span class="Apple-converted-space"> </span></span></p></div>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p3"><span class="s1">You are not logged in</span></p>
-<p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span><span class="s1"></span></p>
-<p class="p1"><span class="s3"><a href="{% url 'new' %}">Sign Up</a></span><span class="s1"> 
+<body> 
+<h1>{{ course.name }}</h1>
+<p>{{ course.number }}</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-primary">Join</button>
+</form>
 
 {% endif %} {% endblock %}</span></p>
 </center>

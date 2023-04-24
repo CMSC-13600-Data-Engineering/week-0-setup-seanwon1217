@@ -18,7 +18,9 @@ student_group, created = Group.objects.get_or_create(name='Student')
 @login_required(login_url='/accounts/login/')
 def join(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
-        #join course
+        #j
+        return render(request, 'app/join.html')
+    else:
         return redirect(reverse('login'))
 def attendance(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
@@ -29,7 +31,8 @@ def upload(request):
         #upload qr
         return redirect(reverse('login'))
 def course_success(request):
-    return render(request, 'app/course_success.html')
+        return render(request, 'app/course_success.html')
+    
 def course_successs(request, code):
     course = Course.objects.get(code=code)
     student_url = reverse('join') + '?course_id=' + str(course.id)
@@ -82,7 +85,7 @@ def success(request):
 @login_required(login_url='/accounts/login/')
 def created(request):
     classdict = {'class1': 'CMSC136'}
-    
+
     if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
         return render(request, 'app/create.html', classdict)
     else:
@@ -107,8 +110,7 @@ def create(request):
                 course.instructor = request.user
                 course.save()
                 messages.success(request, 'Course created successfully.')
-            return render(request, 'app/course_success.html', {
-                'course_code': course.courseid})
+            return render(request, 'app/course_success.html', {'class1': 'CMSC136'})
         else:
             form = CourseForm()
             return render(request, 'app/create.html', {'form': form})
