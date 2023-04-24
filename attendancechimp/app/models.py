@@ -26,6 +26,7 @@ class Course(models.Model):
     instructor = models.ForeignKey(User, on_delete=models.CASCADE)
     day_of_week = models.CharField(max_length = 255, choices = days_of_week)
     meeting_days = models.CharField(max_length=255)
+    students = models.ManyToManyField(User, related_name='courses_taken')
 
     #def __str__(self):
         #return self.name

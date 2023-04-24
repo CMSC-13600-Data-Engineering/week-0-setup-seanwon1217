@@ -14,14 +14,20 @@ from django.urls import reverse
 
 instructor_group, created = Group.objects.get_or_create(name='Instructor')
 student_group, created = Group.objects.get_or_create(name='Student')
-
 @login_required(login_url='/accounts/login/')
-def join(request):
+def join(request, course_id):
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
-        #j
-        return render(request, 'app/join.html')
+        if request.method == 'POST':
+            course = Course.objects.get(course_id=course_id)
+            course.students.add(request.user)
+            course.save()
+            return render(request, 'app/course_success.html', course_id=course_id)
+        else:
+            return render(request, 'app/join.html')
+
     else:
         return redirect(reverse('login'))
+    
 def attendance(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
         #display qr
@@ -30,17 +36,19 @@ def upload(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
         #upload qr
         return redirect(reverse('login'))
-def course_success(request):
+def course_successs(request):
         return render(request, 'app/course_success.html')
     
-def course_successs(request, code):
+def course_success(request, code):
     course = Course.objects.get(code=code)
     student_url = reverse('join') + '?course_id=' + str(course.id)
     instructor_url = reverse('attendance') + '?course_id=' + str(course.id)
     upload_url = reverse('upload') + '?course_id=' + str(course.id)
 
-    return render(request, 'app/success.html',
-                  {'course': course, 'student_url': student_url, 'instructor_url': instructor_url, 'upload_url': upload_url})
+    return render(request, 'app/course_success.html',
+                  {'course': course, 'student_url': student_url, 'instructor_url': instructor_url, 'upload_url': upload_url,
+                   'coursename': course.coursename, 'courseid': course.courseid})
+
 def index(request):
     classdict = {'class1':'CMSC136'}
     return render(request, 'app/index.html', classdict)
@@ -104,9 +112,9 @@ def create(request):
                 end_time = form.cleaned_data['class_end_time']
                 meeting_days = form.cleaned_data['meeting_days']
                 courseid = form.cleaned_data.get('courseid')
-                #if Course.objects.filter(courseid=courseid).exists():
-                    #messages.error(request, 'This course already exists.')
-                    #return render(request, 'app/create.html', {'form': form})
+                if Course.objects.filter(courseid=courseid).exists():
+                    messages.error(request, 'This course already exists.')
+                    return render(request, 'app/create.html', {'form': form})
                 course.instructor = request.user
                 course.save()
                 messages.success(request, 'Course created successfully.')
