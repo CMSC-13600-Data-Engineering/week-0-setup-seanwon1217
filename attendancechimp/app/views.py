@@ -163,21 +163,21 @@ def create(request):
                 start_date = form.cleaned_data['start_date']
                 end_date = form.cleaned_data['end_date']
                 class_start_time = form.cleaned_data['class_start_time']
-                coursename = form.cleaned_data['coursename']
+                coursename = form.cleaned_data['course_name']
                 class_end_time = form.cleaned_data['class_end_time']
                 meeting_days = form.cleaned_data['meeting_days']
                 day_of_week = form.cleaned_data['day_of_week']
-                course_id = form.cleaned_data.get('course_id')
+                coursecode = form.cleaned_data.get('course_code')
                 instructor = request.user
                 
                 # Check for identical course ID
-                if Course.objects.filter(course_id=course_id).exists():
+                if Course.objects.filter(coursecode=coursecode).exists():
                     messages.error(request, 'This course already exists.')
                     return render(request, 'app/create.html', {'form': form})
                 
                 if in_course.objects.filter(course_id__day_of_week=day_of_week, course_id__class_start_time__lt=class_end_time, course_id__class_end_time__gt=class_start_time).exists():
                     messages.error(request, 'The instructor is already teaching a course at this time.')
-                    return render(request, 'create_course.html', {'form': form})
+                    return render(request, 'app/create.html', {'form': form})
             
                 
                 # Check that end date comes after start date
@@ -195,8 +195,8 @@ def create(request):
                         return render(request, 'app/create.html', {'form': form})
                 
                 course.instructor = request.user
-                course.save
-                messages.success(request, 'Course created successfully.')
+                course.save()
+                success_msg = 'Course created successfully.'
                 return redirect(reverse('course_success', args=[course.course_id]))
                 #return redirect('/app/course_success', course_id=new_course.id)
                 #return render(request, 'app/success')
