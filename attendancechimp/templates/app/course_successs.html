@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
 <html>
 <head>
+<p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
 	<title>Sign Up</title>
 	<style>
 		html, body {
@@ -20,14 +20,8 @@
 <body>
   <h1>Success!</h1>
   <p>You have successfully created your class.</p>
-  <p>Course Name: {{ coursename }}</p>
-  <p>Course ID: {{ course_id }}</p>
-  <p>Student URL: <a href="{{ student_url }}">{{ student_url }}</a></p>
-  <p>Instructor URL: <a href="{{ instructor_url }}">{{ instructor_url }}</a></p>
-  <p>Upload URL: <a href="{{ upload_url }}">{{ upload_url }}</a></p>
   <p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span><span class="s1"></span></p>
   <p class="p1"><span class="s3"><a href="{% url 'new' %}">Sign Up</a></span><span class="s1"> 
   <p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
-</body>
-</html>
+
 {% endblock %}

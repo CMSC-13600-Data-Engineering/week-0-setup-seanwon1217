@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
 <p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p><p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span><span class="s1"></span></p>
   <h1>List of Courses</h1>
   <table class="table">
@@ -27,15 +28,16 @@
           <td>{{ course.class_start_time|time:"H:i A" }}</td>
           <td>{{ course.class_end_time|time:"H:i A" }}</td>
           <td>{{ course.meeting_days }}</td>
+          <td><a href="{% url 'join' %}?course_id={{ course.course_id }}">Join</a></td>
+          <td><a href="{% url 'attendance' %}?course_id={{ course.course_id }}">Attendance</a></td>
+          <td><a href="{% url 'upload' %}?course_id={{ course.course_id }}">Upload</a></td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
-
   <p><a href="{% url 'login' %}">Log In</a></p>
   <p><a href="{% url 'new' %}">Sign Up</a></p>
   <p><a href="{% url 'index' %}">Home</a></p>
-
   <style>
     table.table {
       border-collapse: collapse;
