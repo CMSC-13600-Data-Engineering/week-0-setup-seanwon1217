@@ -20,12 +20,12 @@ student_group, created = Group.objects.get_or_create(name='Student')
 
 #the button doesnt work yet
 def join(request):
-    courseid = request.GET.get('course_id', None) or request.POST.get('course_id', None)
-    course = get_object_or_404(Course, course_id=courseid)
-    if not courseid:
+    course_id = request.GET.get('course_id', None) or request.POST.get('course_id', None)
+    course = get_object_or_404(Course, course_id=course_id)
+    if not course_id:
         return HttpResponse("Course id not found")
     try:
-        course = Course.objects.get(course_id=courseid)
+        course = Course.objects.get(course_id=course_id)
     except Course.DoesNotExist:
         return redirect(reverse('index'))
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
@@ -46,11 +46,11 @@ def join(request):
 
     
 def attendance(request):
-    courseid = request.GET.get('course_id', None) or request.POST.get('course_id', None)
-    if not courseid:
+    course_id = request.GET.get('course_id', None) or request.POST.get('course_id', None)
+    if not course_id:
         return HttpResponse("Course id not found")
 
-    course_id = get_object_or_404(Course, course_id=courseid)
+    course_id = get_object_or_404(Course, course_id=course_id)
 
     if not request.user.is_authenticated or not request.user.groups.filter(name='Instructor').exists():
         return redirect(reverse('login'))
@@ -63,10 +63,10 @@ def attendance(request):
     Attendance.objects.create(course_id=course_id, class_code=class_code, time=now)
 
     request.session['class_code'] = class_code
-    request.session['course_id'] = courseid
+    request.session['course_id'] = course_id
 
     qr_image_url = get_random_string(length=32) + class_code
-    course = Course.objects.get(course_id=courseid)
+    course = Course.objects.get(course_id=course_id)
     courses = Course.objects.all() # get all courses
     return render(request, 'app/attendance.html', {'courses': courses, 'class1': course.coursename + course.course_id, 'class_code': class_code, 'qr_image_url': qr_image_url})
 
@@ -189,15 +189,15 @@ def create(request):
                 class_end_time = form.cleaned_data['class_end_time']
                 meeting_days = form.cleaned_data['meeting_days']
                 day_of_week = form.cleaned_data['day_of_week']
-                courseid = form.cleaned_data.get('courseid')
+                course_id = form.cleaned_data.get('course_id')
                 instructor = request.user
                 
                 # Check for identical course ID
-                if Course.objects.filter(courseid=courseid).exists():
+                if Course.objects.filter(course_id=course_id).exists():
                     messages.error(request, 'This course already exists.')
                     return render(request, 'app/create.html', {'form': form})
                 
-                if in_course.objects.filter(courseid__day_of_week=day_of_week, courseid__class_start_time__lt=class_end_time, courseid__class_end_time__gt=class_start_time).exists():
+                if in_course.objects.filter(course_id__day_of_week=day_of_week, course_id__class_start_time__lt=class_end_time, course_id__class_end_time__gt=class_start_time).exists():
                     messages.error(request, 'The instructor is already teaching a course at this time.')
                     return render(request, 'create_course.html', {'form': form})
             

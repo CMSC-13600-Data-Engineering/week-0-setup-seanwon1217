@@ -21,7 +21,7 @@ class user(models.Model):
 days_of_week = [('Monday','Monday'),('Tuesday','Tuesday'),('Wednesday','Wednesday'),('Thursday','Thursday'),('Friday','Friday'),('Saturday','Saturday'),('Sunday','Sunday')]
 class Course(models.Model):
     coursename = models.CharField(max_length=256, null=False)
-    courseid = models.CharField(max_length=255)
+    course_id = models.CharField(max_length=255)
     id = models.AutoField(primary_key=True)
     start_date = models.DateField()
     end_date = models.DateField()
