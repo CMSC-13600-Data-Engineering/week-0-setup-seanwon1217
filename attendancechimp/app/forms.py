@@ -21,7 +21,7 @@ class SignUpForm(UserCreationForm):
 class CourseForm(ModelForm):
     class Meta:
         model = Course
-        fields = ["coursename", "course_id", "start_date", "end_date", 'class_start_time', 'class_end_time', 'day_of_week', 'meeting_days']
+        fields = ["course_name", "course_code", "start_date", "end_date", 'class_start_time', 'class_end_time', 'day_of_week', 'meeting_days']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),
