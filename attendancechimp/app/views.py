@@ -219,7 +219,13 @@ def create(request):
                 course.save()
                 #messages.success(request, 'Course created successfully.')
                 success_msg = 'User account created successfully.'
-                return render(request, 'app/course_success.html', {'success_msg': success_msg})
+                student_url = reverse('join') + '?course_id=' + str(course.course_id)
+                instructor_url = reverse('attendance') + '?course_id=' + str(course.course_id)
+                upload_url = reverse('upload') + '?course_id=' + str(course.course_id)
+                return render(request, 'app/course_success.html', {'success_msg': success_msg, 'course': course, 'student_url': student_url, 'instructor_url': instructor_url, 'upload_url': upload_url,
+                   'coursename': course.coursename, 'course_id': course.course_id})
+                
+                #return render(request, 'app/course_success.html', {'success_msg': success_msg})
                 #return redirect(reverse('course_success', args=[course.course_id]))
                 #return redirect(reverse('course_success', kwargs={'course_id': courseid}))
 
