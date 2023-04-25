@@ -20,9 +20,9 @@ class user(models.Model):
 # the class courses creates a table with each course name and assigns them an ID
 days_of_week = [('Monday','Monday'),('Tuesday','Tuesday'),('Wednesday','Wednesday'),('Thursday','Thursday'),('Friday','Friday'),('Saturday','Saturday'),('Sunday','Sunday')]
 class Course(models.Model):
-    course_name = models.CharField(max_length=256, null=False)
-    course_code = models.CharField(max_length=255)
-    course_id = models.AutoField(primary_key=True)
+    coursename = models.CharField(max_length=256, null=False)
+    courseid = models.CharField(max_length=255)
+    id = models.AutoField(primary_key=True)
     start_date = models.DateField()
     end_date = models.DateField()
     class_start_time = models.TimeField()
