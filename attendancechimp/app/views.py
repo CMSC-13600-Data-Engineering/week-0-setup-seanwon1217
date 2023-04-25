@@ -14,8 +14,6 @@ from django.utils.crypto import get_random_string
 from datetime import datetime
 
 
-instructor_group, created = Group.objects.get_or_create(name='Instructor')
-student_group, created = Group.objects.get_or_create(name='Student')
 @login_required(login_url='/accounts/login/')
 
 #the button doesnt work yet
@@ -101,9 +99,13 @@ def course_success(request, course_id):
 
 def index(request):
     classdict = {'class1':'CMSC136'}
+    instructor_group, created = Group.objects.get_or_create(name='Instructor')
+    student_group, created = Group.objects.get_or_create(name='Student')
+
     return render(request, 'app/index.html', classdict)
 
 def new(request):
+    
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
