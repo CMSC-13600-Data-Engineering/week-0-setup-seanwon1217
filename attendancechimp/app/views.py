@@ -189,19 +189,18 @@ def create(request):
                 class_end_time = form.cleaned_data['class_end_time']
                 meeting_days = form.cleaned_data['meeting_days']
                 day_of_week = form.cleaned_data['day_of_week']
-                course_id = form.cleaned_data.get('course_id')
+                courseid = form.cleaned_data.get('course_id')
                 instructor = request.user
                 
                 # Check for identical course ID
-                if Course.objects.filter(course_id=course_id).exists():
+                if Course.objects.filter(course_id=courseid).exists():
                     messages.error(request, 'This course already exists.')
                     return render(request, 'app/create.html', {'form': form})
                 
-                if in_course.objects.filter(course_id__day_of_week=day_of_week, course_id__class_start_time__lt=class_end_time, course_id__class_end_time__gt=class_start_time).exists():
+                if in_course.objects.filter(courseid__day_of_week=day_of_week, courseid__class_start_time__lt=class_end_time, courseid__class_end_time__gt=class_start_time).exists():
                     messages.error(request, 'The instructor is already teaching a course at this time.')
-                    return render(request, 'create_course.html', {'form': form})
+                    return render(request, 'app/create.html', {'form': form})
             
-                
                 # Check that end date comes after start date
                 if end_date < start_date:
                     messages.error(request, 'End date cannot precede start date.')
@@ -218,14 +217,15 @@ def create(request):
                 
                 course.instructor = request.user
                 course.save()
-                messages.success(request, 'User account created successfully.')
-                #return render(request, 'app/course_success.html', {'success_msg': success_msg})
+                #messages.success(request, 'User account created successfully.')
+                success_msg = 'User account created successfully.'
+                return render(request, 'app/course_success.html', {'success_msg': success_msg})
                 #return redirect(reverse('course_success', args=[course.course_id]))
                 #return redirect(reverse('course_success', kwargs={'course_id': course_id}))
 
                 #return redirect(reverse('course_success', kwargs={'course_id': course.course_id}))
                 #return redirect('/app/course_success', course_id=new_course.id)
-                return redirect(reverse('course_success', args=[course.course_id]))
+                #return redirect(reverse('course_success', args=[course.course_id]))
         else:
             form = CourseForm()
         return render(request, 'app/create.html', {'form': form})
