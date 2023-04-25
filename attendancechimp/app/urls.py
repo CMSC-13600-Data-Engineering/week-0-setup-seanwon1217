@@ -11,6 +11,7 @@ urlpatterns = [
     path('join/', views.join, name='join'),
     path('attendance/', views.attendance, name='attendance'),
     path('course_success/<int:course_id>/', views.course_success, name='course_success'),
+    #path('course_success/', views.create, name='course_success'),
     path('upload/', views.upload, name='upload'),
     path('course_list/', views.course_list, name='course_list'),
 ]
