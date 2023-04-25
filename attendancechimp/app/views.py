@@ -10,8 +10,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import user, Course, in_course, Attendance
 from django.urls import reverse
-from django.utils.crypto import get_random_string
-from datetime import datetime
 
 
 instructor_group, created = Group.objects.get_or_create(name='Instructor')
@@ -46,37 +44,9 @@ def join(request):
 
     
 def attendance(request):
-    course_code = request.GET.get('course_id', None) or request.POST.get('course_id', None)
-    if not course_code:
-        return HttpResponse("Course id not found")
-
-    course_id = get_object_or_404(Course, course_id=course_code)
-
-    if not request.user.is_authenticated or not request.user.groups.filter(name='Instructor').exists():
+    if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
+        #display qr
         return redirect(reverse('login'))
-
-    if not course_id.instructor == request.user:
-        return redirect(reverse('login'))
-
-    class_code = Attendance.generate_class_code(course_id=course_id)
-    now = datetime.now()
-    Attendance.objects.create(course_id=course_id, class_code=class_code, time=now)
-
-    request.session['class_code'] = class_code
-    request.session['course_id'] = course_code
-
-    qr_image_url = get_random_string(length=32) + class_code
-    course = Course.objects.get(course_id=course_code)
-    courses = Course.objects.all() # get all courses
-    return render(request, 'app/attendance.html', {'courses': courses, 'class1': course.coursename + course.course_id, 'class_code': class_code, 'qr_image_url': qr_image_url})
-
-def upload(request):
-    if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
-        # upload qr
-        return redirect(reverse('login'))
-    else:
-        return redirect(reverse('login'))
-
 def upload(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
         #upload qr
@@ -84,20 +54,18 @@ def upload(request):
 
 @login_required(login_url='/accounts/login/')
 def course_success(request, course_id):
-    if not request.user.is_authenticated:
-        return redirect(reverse('create'))
-    
     courses = Course.objects.filter(course_id=course_id)
     if not courses:
-        return redirect(reverse('create'))
-    
-    course = courses.first()
-    student_url = reverse('join') + '?course_id=' + str(course.course_id)
-    instructor_url = reverse('attendance') + '?course_id=' + str(course.course_id)
-    upload_url = reverse('upload') + '?course_id=' + str(course.course_id)
-    return render(request, 'app/course_success.html',
+        return redirect(reverse('login'))
+    else:
+        course = courses.first()
+        student_url = reverse('join') + '?course_id=' + str(course.course_id)
+        instructor_url = reverse('attendance') + '?course_id=' + str(course.course_id)
+        upload_url = reverse('upload') + '?course_id=' + str(course.course_id)
+        return render(request, 'app/course_success.html',
                   {'course': course, 'student_url': student_url, 'instructor_url': instructor_url, 'upload_url': upload_url,
                    'coursename': course.coursename, 'course_id': course.course_id})
+
 
 def index(request):
     classdict = {'class1':'CMSC136'}
@@ -138,7 +106,6 @@ def new(request):
 def success(request):
     return render(request, 'app/success.html')
 
-
 @login_required(login_url='/accounts/login/')
 
 @login_required(login_url='/accounts/login/')
@@ -150,29 +117,10 @@ def created(request):
     else:
         return redirect(reverse('login'))
 
+
 def course_list(request):
     courses = Course.objects.all() # get all courses
-    course_list = []
-    for course in courses:
-        student_url = reverse('join') + '?course_id=' + str(course.course_id)
-        instructor_url = reverse('attendance') + '?course_id=' + str(course.course_id)
-        upload_url = reverse('upload') + '?course_id=' + str(course.course_id)
-        course_dict = {'course': course, 'student_url': student_url, 'instructor_url': instructor_url, 'upload_url': upload_url,
-                       'coursename': course.coursename, 'course_id': course.course_id, 'instructor': course.instructor,
-                       'day_of_week': course.day_of_week, 'students': course.students, 'class_start_time': course.class_start_time,
-                       'class_end_time': course.class_end_time, 'meeting_days' : course.meeting_days,}
-        course_list.append(course_dict)
-    return render(request, 'app/course_list.html', {'courses': course_list})
-
-##def course_list(request):
-##    courses = Course.objects.all() # get all courses
-##    courses = Course.objects.filter(course_id=course_id)
-##    student_url = reverse('join') + '?course_id=' + str(course.course_id)
-##    instructor_url = reverse('attendance') + '?course_id=' + str(course.course_id)
-##    upload_url = reverse('upload') + '?course_id=' + str(course.course_id)
-##    return render(request, 'app/course_list.html',
-##                  {'courses': courses'course': course, 'student_url': student_url, 'instructor_url': instructor_url, 'upload_url': upload_url,
-##                   'coursename': course.coursename, 'course_id': course.course_id})
+    return render(request, 'app/course_list.html', {'courses': courses})
 
 
 @login_required(login_url='/accounts/login/')
@@ -217,14 +165,11 @@ def create(request):
                         return render(request, 'app/create.html', {'form': form})
                 
                 course.instructor = request.user
-                course.save()
+                course.save
                 messages.success(request, 'Course created successfully.')
-                #return redirect(reverse('course_success', args=[course.course_id]))
-                #return redirect(reverse('course_success', kwargs={'course_id': course_id}))
-
-                #return redirect(reverse('course_success', kwargs={'course_id': course.course_id}))
-                #return redirect('/app/course_success', course_id=new_course.id)
                 return redirect(reverse('course_success', args=[course.course_id]))
+                #return redirect('/app/course_success', course_id=new_course.id)
+                #return render(request, 'app/success')
         else:
             form = CourseForm()
         return render(request, 'app/create.html', {'form': form})
