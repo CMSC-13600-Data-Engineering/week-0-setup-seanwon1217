@@ -18,7 +18,7 @@ class user(models.Model):
     username = models.CharField(max_length=256, null=False)
 
 # the class courses creates a table with each course name and assigns them an ID
-days_of_week = [('Monday','Monday'),('Tuesday','Tuesday'),('Wednesday','Wednesday'),('Thursday','Thursday'),('Friday','Friday'),('Saturday','Saturday'),('Sunday','Sunday')]
+days_of_week = [('Mon','Mon'),('Tues','Tues'),('Wed','Wed'),('Thurs','Thurs'),('Fri','Fri'),('Sat','Sat'),('Sun','Sun'),('Mon,Wed,Fri','Mon,Wed,Fri'),('Mon,Wed','Mon,Wed'),('Tues,Thurs','Tues,Thurs')]
 class Course(models.Model):
     coursename = models.CharField(max_length=256, null=False)
     course_id = models.CharField(max_length=255)

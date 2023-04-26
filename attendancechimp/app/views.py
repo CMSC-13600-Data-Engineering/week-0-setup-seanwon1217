@@ -13,7 +13,6 @@ from django.urls import reverse
 from django.utils.crypto import get_random_string
 from datetime import datetime
 
-
 instructor_group, created = Group.objects.get_or_create(name='Instructor')
 student_group, created = Group.objects.get_or_create(name='Student')
 @login_required(login_url='/accounts/login/')
@@ -185,36 +184,37 @@ def create(request):
                 start_date = form.cleaned_data['start_date']
                 end_date = form.cleaned_data['end_date']
                 class_start_time = form.cleaned_data['class_start_time']
-                coursename = form.cleaned_data['coursename']
                 class_end_time = form.cleaned_data['class_end_time']
                 meeting_days = form.cleaned_data['meeting_days']
                 day_of_week = form.cleaned_data['day_of_week']
                 courseid = form.cleaned_data.get('course_id')
-                instructor = request.user
+                coursename = form.cleaned_data['coursename']
+                course_instructor = request.user
                 
                 # Check for identical course ID during the same time
-                if Course.objects.filter(course_id=courseid).exists():
+                query1 = Course.objects.filter(course_id=courseid, start_date__lte=course.end_date, end_date__gte=course.start_date, class_start_time = class_start_time, class_end_time = class_end_time, day_of_week = day_of_week) or Course.objects.filter(course_id=courseid, end_date__gte=course.start_date, start_date__lte=course.end_date, class_start_time = class_start_time, class_end_time = class_end_time, day_of_week = day_of_week)
+                if query1.exists():
                     messages.error(request, 'This course already exists.')
                     return render(request, 'app/create.html', {'form': form})
                 
-                #if in_course.objects.filter(courseid__day_of_week=day_of_week, courseid__class_start_time__lt=class_end_time, courseid__class_end_time__gt=class_start_time).exists():
-                    #messages.error(request, 'The instructor is already teaching a course at this time.')
-                    #return render(request, 'app/create.html', {'form': form})
+                # Check for instructor schedule conflict
+                query2 = Course.objects.filter(instructor = course_instructor)
+                query2_1 = query2.filter(class_start_time__lte=course.class_end_time, class_end_time__gte=course.class_start_time) | query2.filter(class_end_time__gte=course.class_start_time, class_start_time__lte=course.class_end_time)
+                query2_2 = query2_1.filter(day_of_week = day_of_week, start_date__lte=course.end_date, end_date__gte=course.start_date) | query2_1.filter(day_of_week = day_of_week, end_date__gte=course.start_date, start_date__lte=course.end_date)
+                if query2_2.exists():
+                    messages.error(request, 'You are already teaching a course at this time.')
+                    return render(request, 'app/create.html', {'form': form})
             
                 # Check that end date comes after start date
-                #if end_date < start_date:
-                    #messages.error(request, 'End date cannot precede start date.')
-                    #return render(request, 'app/create.html', {'form': form})
+                if end_date < start_date:
+                    messages.error(request, 'End date must be after start date.')
+                    return render(request, 'app/create.html', {'form': form})
                 
-                # Check for schedule conflicts
-                #all_courses = Course.objects.filter(instructor=request.user)
-                #for c in all_courses:
-                    #if c.day_of_week == course.day_of_week and \
-                       #(c.start_date < course.end_date and c.end_date > course.start_date) and \
-                       #(c.class_start_time < course.class_end_time and c.class_end_time > course.class_start_time):
-                        #messages.error(request, f'Schedule conflict with {c.coursename}.')
-                        #return render(request, 'app/create.html', {'form': form})
-                
+                # Check that end time comes after start time
+                if class_end_time < class_start_time:
+                    messages.error(request, 'End time must be after start time.')
+                    return render(request, 'app/create.html', {'form': form})
+               
                 course.instructor = request.user
                 course.save()
                 #messages.success(request, 'Course created successfully.')
@@ -228,7 +228,6 @@ def create(request):
                 #return render(request, 'app/course_success.html', {'success_msg': success_msg})
                 #return redirect(reverse('course_success', args=[course.course_id]))
                 #return redirect(reverse('course_success', kwargs={'course_id': courseid}))
-
                 #return redirect(reverse('course_success', kwargs={'course_id': course.course_id}))
                 #return redirect('/app/course_success', course_id=new_course.id)
                 #return redirect(reverse('app/course_success.html', args=[course.course_id]))
