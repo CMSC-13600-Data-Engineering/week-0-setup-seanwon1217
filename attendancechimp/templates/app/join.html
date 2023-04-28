@@ -3,7 +3,6 @@
 {% block content %}
 <html>
 <head>
-<p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
 	<title>Join</title>
 	<style>
 		html, body {
@@ -18,12 +17,13 @@
 	</style>
 </head>
 <body> 
-<h1>{{ course.coursename }}</h1>
-<p>{{ course.courseid }}</p>
+<h1>Course Name: {{coursename}}</h1>
+<p>Course Number: {{course_id}}</p>
 <form method="post">
   {% csrf_token %}
   <button type="submit" class="btn btn-primary">Join</button>
 </form>
+<p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
 
 {% endblock %}</span></p>
 </center>

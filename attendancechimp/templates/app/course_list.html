@@ -11,10 +11,10 @@
 	<th>Instructor</th>
 	<th>Course Id</th>
         <th>Day of Week</th>
-	<th>Students</th>
         <th>Start Time</th>
         <th>End Time</th>
         <th>Meeting Days</th>
+	<th>Students</th>
       </tr>
     </thead>
     <tbody>
@@ -24,10 +24,10 @@
           <td>{{ course.instructor }}</td>
 	  <td>{{ course.course_id }}</td>
 	  <td>{{ course.day_of_week }}</td>
-	  <td>{{ course.students }}</td>
           <td>{{ course.class_start_time|time:"H:i A" }}</td>
           <td>{{ course.class_end_time|time:"H:i A" }}</td>
           <td>{{ course.meeting_days }}</td>
+	  <td><a href="{% url 'student_list' %}?course_id={{ course.course_id }}">Students</a></td>
           <td><a href="{% url 'join' %}?course_id={{ course.course_id }}">Join</a></td>
           <td><a href="{% url 'attendance' %}?course_id={{ course.course_id }}">Attendance</a></td>
           <td><a href="{% url 'upload' %}?course_id={{ course.course_id }}">Upload</a></td>

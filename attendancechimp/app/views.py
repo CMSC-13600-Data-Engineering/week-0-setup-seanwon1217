@@ -39,10 +39,11 @@ def join(request):
                     return HttpResponse(f"You cannot join this course because it conflicts with another course you are enrolled in. ({enrolled_course.course_id.coursename})")
 
             in_course.objects.create(course_id=course_id, student=student)
+            success_msg = 'You have successfully joined the course'
             messages.success(request, f"You have successfully joined {course_id.coursename}.")
-            return redirect('app/course_success', course_id=course_id)
+            return render(request, 'app/success.html', {'success_msg': success_msg})
         else:
-            return render(request, 'app/join.html', {'course_id': course_id})
+            return render(request, 'app/join.html', {'coursename': course_id.coursename, 'course_id': course_id.course_id})
     else:
         return redirect(reverse('login'))
 
