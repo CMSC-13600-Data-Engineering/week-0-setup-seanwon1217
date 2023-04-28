@@ -22,6 +22,7 @@ days_of_week = [('Mon','Mon'),('Tues','Tues'),('Wed','Wed'),('Thurs','Thurs'),('
 class Course(models.Model):
     coursename = models.CharField(max_length=256, null=False)
     course_id = models.CharField(max_length=255)
+    #course_code = models.CharField(primary_key=True, max_length=256)
     start_date = models.DateField()
     end_date = models.DateField()
     class_start_time = models.TimeField()
@@ -67,7 +68,7 @@ class Attendance(models.Model):
     def generate_class_code(cls, course_id):
         # Generate a random string for class code
         class_code = get_random_string(length=32)
-        # Create an Attendance object with course and class code
+        # Create an Attendance object with course, class code, and time
         attendance = cls(course_id=course_id, class_code=class_code)
         attendance.save()
         # Return the class code

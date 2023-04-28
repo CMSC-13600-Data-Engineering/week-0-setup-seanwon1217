@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
@@ -10,8 +10,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import user, Course, in_course, Attendance
 from django.urls import reverse
-from django.utils.crypto import get_random_string
 from datetime import datetime
+import uuid
 
 instructor_group, created = Group.objects.get_or_create(name='Instructor')
 student_group, created = Group.objects.get_or_create(name='Student')
@@ -43,31 +43,38 @@ def join(request):
     else:
         return redirect(reverse('login'))
 
-    
+@login_required(login_url='/accounts/login/')  
 def attendance(request):
-    course_id = request.GET.get('course_id', None) or request.POST.get('course_id', None)
-    if not course_id:
-        return HttpResponse("Course id not found")
+    if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
+        course_instructor = request.user
+        course_id = request.GET.get('course_id', None)
+        #course = get_object_or_404(Course, course_id=course_id)
+        course = Course.objects.get(course_id=course_id)
+     
+        if course_instructor != course.instructor:
+            return HttpResponseNotFound("You are not the instructor of this course.") 
 
-    course_id = get_object_or_404(Course, course_id=course_id)
-
-    if not request.user.is_authenticated or not request.user.groups.filter(name='Instructor').exists():
+        class_code = uuid.uuid4()
+        new_attendance = Attendance(class_code=class_code, course_id=course, time=datetime.now())
+        new_attendance.save()
+        #class_code = Attendance.generate_class_code(course_id=course_id)   
+             
+        return redirect(reverse('login'))
+        #return render(request, 'attendance_qr_code.html', {'course': course})
+    
+    else:
         return redirect(reverse('login'))
 
-    if not course_id.instructor == request.user:
-        return redirect(reverse('login'))
+   # now = datetime.now()
+   # Attendance.objects.create(course_id=course_id, class_code=class_code, time=now)
 
-    class_code = Attendance.generate_class_code(course_id=course_id)
-    now = datetime.now()
-    Attendance.objects.create(course_id=course_id, class_code=class_code, time=now)
+   # request.session['class_code'] = class_code
+  #  request.session['course_id'] = course_id
 
-    request.session['class_code'] = class_code
-    request.session['course_id'] = course_id
-
-    qr_image_url = get_random_string(length=32) + class_code
-    course = Course.objects.get(course_id=course_id)
-    courses = Course.objects.all() # get all courses
-    return render(request, 'app/attendance.html', {'courses': courses, 'class1': course.coursename + course.course_id, 'class_code': class_code, 'qr_image_url': qr_image_url})
+   # qr_image_url = get_random_string(length=32) + class_code
+   # course = Course.objects.get(course_id=course_id)
+   # courses = Course.objects.all() # get all courses
+    #return render(request, 'app/attendance.html', {'courses': courses, 'class1': course.coursename + course.course_id, 'class_code': class_code, 'qr_image_url': qr_image_url})
 
 def upload(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
@@ -137,9 +144,6 @@ def new(request):
 def success(request):
     return render(request, 'app/success.html')
 
-
-@login_required(login_url='/accounts/login/')
-
 @login_required(login_url='/accounts/login/')
 def created(request):
     classdict = {'class1': 'CMSC136'}
@@ -185,17 +189,21 @@ def create(request):
                 end_date = form.cleaned_data['end_date']
                 class_start_time = form.cleaned_data['class_start_time']
                 class_end_time = form.cleaned_data['class_end_time']
-                meeting_days = form.cleaned_data['meeting_days']
                 day_of_week = form.cleaned_data['day_of_week']
                 courseid = form.cleaned_data.get('course_id')
-                coursename = form.cleaned_data['coursename']
                 course_instructor = request.user
                 
-                # Check for identical course ID during the same time
-                query1 = Course.objects.filter(course_id=courseid, start_date__lte=course.end_date, end_date__gte=course.start_date, class_start_time = class_start_time, class_end_time = class_end_time, day_of_week = day_of_week) or Course.objects.filter(course_id=courseid, end_date__gte=course.start_date, start_date__lte=course.end_date, class_start_time = class_start_time, class_end_time = class_end_time, day_of_week = day_of_week)
+                # Check for identical course ID
+                query1 = Course.objects.filter(course_id=courseid)
                 if query1.exists():
                     messages.error(request, 'This course already exists.')
                     return render(request, 'app/create.html', {'form': form})
+                
+                # Check for identical course ID during the same time
+                #query1 = Course.objects.filter(course_id=courseid, start_date__lte=course.end_date, end_date__gte=course.start_date, class_start_time = class_start_time, class_end_time = class_end_time, day_of_week = day_of_week) or Course.objects.filter(course_id=courseid, end_date__gte=course.start_date, start_date__lte=course.end_date, class_start_time = class_start_time, class_end_time = class_end_time, day_of_week = day_of_week)
+                #if query1.exists():
+                    #messages.error(request, 'This course already exists.')
+                    #return render(request, 'app/create.html', {'form': form})
                 
                 # Check for instructor schedule conflict
                 query2 = Course.objects.filter(instructor = course_instructor)
@@ -224,13 +232,6 @@ def create(request):
                 upload_url = reverse('upload') + '?course_id=' + str(course.course_id)
                 return render(request, 'app/course_success.html', {'success_msg': success_msg, 'course': course, 'student_url': student_url, 'instructor_url': instructor_url, 'upload_url': upload_url,
                    'coursename': course.coursename, 'course_id': course.course_id})
-                
-                #return render(request, 'app/course_success.html', {'success_msg': success_msg})
-                #return redirect(reverse('course_success', args=[course.course_id]))
-                #return redirect(reverse('course_success', kwargs={'course_id': courseid}))
-                #return redirect(reverse('course_success', kwargs={'course_id': course.course_id}))
-                #return redirect('/app/course_success', course_id=new_course.id)
-                #return redirect(reverse('app/course_success.html', args=[course.course_id]))
         else:
             form = CourseForm()
         return render(request, 'app/create.html', {'form': form})
