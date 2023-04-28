@@ -68,6 +68,7 @@ class Attendance(models.Model):
 class addqrCode (models.Model):
     course_id = models.ForeignKey(Course,on_delete=models.CASCADE)
     user= models.ForeignKey(user, on_delete=models.CASCADE)
+    time = models.DateTimeField(default=timezone.now)
     qr_code_image = models.ImageField(upload_to='qrcodes/')
 ##    if in_course.objects.filter(userid=userid).count() == 0:
 ##        raise ValueError('No user with the userid' + userid + ' exists in this class')

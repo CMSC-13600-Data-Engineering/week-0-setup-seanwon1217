@@ -65,21 +65,55 @@ def attendance(request):
     else:
         return redirect(reverse('login'))
 
-def upload(request):
-        if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
-            course_id = request.GET.get('course_id', None)
-            course = Course.objects.get(course_id=course_id)
-            if in_course.objects.filter(course_id=course, student=request.user).exists() == False:
-                return HttpResponseNotFound("You have not joined this course.")
-            if request.method == 'POST':
-                uploaded = request.FILES['uploaded']
-                trying=Attendance.objects.filter(course=course).last()
-                addqrcode= addqrcode(.qr_code_image.save(uploaded.name, uploaded, save=True)
-            
-            return redirect(reverse('login'))
-        else:
-            return render(request, 'app/upload.html', {'course_id': course_id})
+##def upload(request):
+##        if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
+##            course_id = request.GET.get('course_id', None)
+##            course = Course.objects.get(course_id=course_id)
+##            if in_course.objects.filter(course_id=course_id, student=request.user).exists() == False:
+##                return HttpResponseNotFound("You have not joined this course.")
+##            if request.method == 'POST':
+##                qr_code_image = request.FILES['uploaded']
+##                trying=Attendance.objects.filter(course=course).last()
+##                #addqrcode= addqrcode(qr_code_image.save(qr_code_image.name, qr_code_image, save=True)
+##
+##                addqrCode.objects.create(
+##                user=request.user,
+##                time=timezone.now(),
+##                course=course,
+##                qr_code_image=qr_code_image)
+##            return render(request, 'upload.html', {'course_id':course_id})
+##           # return redirect(reverse('login'))
+##        else:
+##            return render(request, 'upload.html', {'course_id':course_id})
+##from django.shortcuts import render, redirect, reverse, HttpResponseNotFound
+##from django.utils import timezone
+##from .models import Course, in_course, Attendance, addqrCode
 
+
+def upload(request):
+    if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
+        course_id = request.GET.get('course_id')
+        course = Course.objects.filter(course_id=course_id).first()
+
+        if not course:
+            return HttpResponseNotFound("Invalid course ID")
+
+        if not in_course.objects.filter(course_id=course, student=request.user).exists():
+            return HttpResponseNotFound("You have not joined this course.")
+
+        if request.method == 'POST' and request.FILES.get('uploaded'):
+            qr_code_image = request.FILES['uploaded']
+            addqrCode.objects.create(
+                user=request.user,
+                time=timezone.now(),
+                course=course,
+                qr_code_image=qr_code_image
+            )
+        return render(request, 'app/upload.html', {'course_id': course_id})
+    else:
+        return redirect(reverse('login'))
+
+        
 @login_required(login_url='/accounts/login/')
 def course_success(request, course_id):
     if not request.user.is_authenticated:
