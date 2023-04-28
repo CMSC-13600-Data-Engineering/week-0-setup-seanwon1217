@@ -10,6 +10,7 @@ urlpatterns = [
     #path('course_successs/', views.course_successs, name='course_successs'),
     path('join/', views.join, name='join'),
     path('attendance/', views.attendance, name='attendance'),
+    path('student_list/', views.student_list, name='student_list'),
     path('course_success/<int:course_id>/', views.course_success, name='course_success'),
     #path('course_success/', views.create, name='course_success'),
     path('upload/', views.upload, name='upload'),
