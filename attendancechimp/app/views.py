@@ -51,7 +51,6 @@ def attendance(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
         course_instructor = request.user
         course_id = request.GET.get('course_id', None)
-        #course = get_object_or_404(Course, course_id=course_id)
         course = Course.objects.get(course_id=course_id)
      
         if course_instructor != course.instructor:
@@ -59,25 +58,11 @@ def attendance(request):
 
         class_code = uuid.uuid4()
         new_attendance = Attendance(class_code=class_code, course_id=course, time=datetime.now())
-        new_attendance.save()
-        #class_code = Attendance.generate_class_code(course_id=course_id)   
+        new_attendance.save()   
              
-        return redirect(reverse('login'))
-        #return render(request, 'attendance_qr_code.html', {'course': course})
-    
+        return render(request, 'app/QRCode.html', {'class_code':class_code})
     else:
         return redirect(reverse('login'))
-
-   # now = datetime.now()
-   # Attendance.objects.create(course_id=course_id, class_code=class_code, time=now)
-
-   # request.session['class_code'] = class_code
-  #  request.session['course_id'] = course_id
-
-   # qr_image_url = get_random_string(length=32) + class_code
-   # course = Course.objects.get(course_id=course_id)
-   # courses = Course.objects.all() # get all courses
-    #return render(request, 'app/attendance.html', {'courses': courses, 'class1': course.coursename + course.course_id, 'class_code': class_code, 'qr_image_url': qr_image_url})
 
 def upload(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
