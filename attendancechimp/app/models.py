@@ -53,9 +53,15 @@ class Course(models.Model):
 # the class in_course creates a table with course's and the people in the course. It then
 # says whether the user is an instructor
 class in_course(models.Model):
-    course_id = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
-    userid = models.ForeignKey(user, on_delete=models.SET_NULL, null=True)
+    course_id = models.ForeignKey(Course, on_delete=models.CASCADE, default='default_course_id')
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    enrollment_date = models.DateTimeField(default=timezone.now)
 
+    class Meta:
+        unique_together = ('course_id', 'student')
+
+    def __str__(self):
+        return f"{self.course_id.coursename} - {self.student.username}"
 # the class qrCode creates a table with a unique id for each qrCode and with course_id,
 # userid, and time.
 class Attendance(models.Model):
