@@ -66,27 +66,19 @@ def attendance(request):
         return redirect(reverse('login'))
 
 def upload(request):
-    if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
-        course_id = request.GET.get('course_id')
-    try:
-        # Check if the user is associated with the course
-        course_id = Course.objects.get(course_id=course_id)
-        in_course = in_course.objects.get(user=request.user, course_id=course_id)
-    except (Course.DoesNotExist, in_course.DoesNotExist):
-        # If the user is not associated with the course, raise a PermissionDenied error
-        return redirect(reverse('login'))
-    
-    if request.method == 'POST':
-        # Get the uploaded file
-        uploaded_file = request.FILES['file']
-        # Create a new QRCode object and save the uploaded file to it
-        qrcode = addqrCode(course_id=course_id, user=request.user)
-        qrcode.qr_code_image.save(uploaded_file.name, uploaded_file, save=True)
-        # Redirect the user to a success page
-        return redirect('qr_upload_success')
-    
-    # Render the upload form template
-    return render(request, 'qr_upload.html', {'course_id': course_id})
+        if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
+            course_id = request.GET.get('course_id', None)
+            course = Course.objects.get(course_id=course_id)
+            if in_course.objects.filter(course_id=course, student=request.user).exists() == False:
+                return HttpResponseNotFound("You have not joined this course.")
+            if request.method == 'POST':
+                uploaded = request.FILES['uploaded']
+                trying=Attendance.objects.filter(course=course).last()
+                addqrcode= addqrcode(.qr_code_image.save(uploaded.name, uploaded, save=True)
+            
+            return redirect(reverse('login'))
+        else:
+            return render(request, 'app/upload.html', {'course_id': course_id})
 
 @login_required(login_url='/accounts/login/')
 def course_success(request, course_id):

@@ -3,30 +3,83 @@
 {% block content %}
 <html>
 <head>
-<p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
-	<title>Sign Up</title>
-	<style>
-		html, body {
-			height: 100%;
-		}
-		body {
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-		}
-	</style>
-</head>
-<body> {% if user.is_authenticated %} Hi </span><span class="s2">{{ user.username }}</span><span class="s1">! You are an Instructor for Class: {{class1}}
-<p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span><span class="s1"></span></p>
-<p class="p1"><span class="s3"><a href="{% url 'new' %}">Sign Up</a></span><span class="s1"> 
-{% else %}<span class="Apple-converted-space"> </span></span></p></div>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p3"><span class="s1">You are not logged in</span></p>
-<p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span><span class="s1"></span></p>
-<p class="p1"><span class="s3"><a href="{% url 'new' %}">Sign Up</a></span><span class="s1"> 
+<p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p><p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span><span class="s1"></span></p>
+    <title>Upload QR Code</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+      
+      header {
+        background-color: #333;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      
+      h1 {
+        margin-top: 0;
+      }
+      
+      form {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        width: 50%;
+        margin: 0 auto;
+      }
+      
+      input[type="coursename"],
+      input[type="courseid"],
+      input[type="start_date"],
+      input[type="end_date"],
+      input[type="meeting_time"],
+      input[type="day_of_week"]
+      input[type="class_start_time"] {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        margin-bottom: 20px;
+      }
+      
+      input[type="submit"] {
+        background-color: #333;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      
+      input[type="submit"]:hover {
+        background-color: #555;
+      }
+      
+      label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Upload QR Code</h1>
+    </header>
 
-{% endif %} {% endblock %}</span></p>
-</center>
-</body>
+    <form action="{% url 'upload' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Upload">
+    </form>
+  </body>
 </html>
+
+{% endblock %}
