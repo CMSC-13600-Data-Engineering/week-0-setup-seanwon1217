@@ -3,23 +3,11 @@
 <html>
 <head>
 	<title>Attendance QR Code</title>
-	<style>
-		html, body {
-			height: 100%;
-		}
-		body {
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-		}
-	</style>
 </head>
 
-<body>
-    <div id='ele_qrcode'></div>
-    <script type="text/javascript" src="{% static 'qrcode.js' %}" >
-        qr_code = new QRCode(document.getElementById('ele_qrcode'))
-        qr_code.makeCode("123")
-    </script>
-</body>
+<script type="text/javascript" src="{% static 'qrcode.js' %}" ></script>
+<div id='ele_qrcode'/>
+<script type="text/javascript">
+    qr_code = new QRCode(document.getElementById('ele_qrcode'))
+    qr_code.makeCode('{{ class_code }}')
+</script>
