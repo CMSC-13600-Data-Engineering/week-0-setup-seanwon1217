@@ -17,29 +17,32 @@ instructor_group, created = Group.objects.get_or_create(name='Instructor')
 student_group, created = Group.objects.get_or_create(name='Student')
 @login_required(login_url='/accounts/login/')
 
-#the button doesnt work yet
 def join(request):
-    course_id = request.GET.get('course_id', None) or request.POST.get('course_id', None)
-    course = get_object_or_404(Course, course_id=course_id)
+    user = request.user
+    course_id = request.GET.get('course_id') or request.POST.get('course_id')
     if not course_id:
         return HttpResponse("Course id not found")
+
     try:
-        course = Course.objects.get(course_id=course_id)
+        course_id = Course.objects.get(course_id=course_id)
     except Course.DoesNotExist:
         return redirect(reverse('index'))
+
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
-        student = request.user
-        if not student.is_enrolled_in_course(course):
-            if request.method == 'POST':
-                if student.is_enrolled_in_course_at_same_time(course):
-                    return HttpResponse("You are already enrolled in a course meeting at the same time.")
-                course.students.add(student)
-                course.save()
-                return render(request, 'app/course_success.html', {'course_id': course.course_id, 'coursename': course.coursename})
-            else:
-                return render(request, 'app/join.html', {'course': course})
+        student = user
+
+        if request.method == 'POST':
+            for enrolled_course in in_course.objects.filter(student=student):
+                if set(enrolled_course.course_id.meeting_days) & set(course_id.meeting_days) and \
+                   enrolled_course.course_id.class_start_time < course_id.class_end_time and \
+                   enrolled_course.course_id.class_end_time > course_id.class_start_time:
+                    return HttpResponse(f"You cannot join this course because it conflicts with another course you are enrolled in. ({enrolled_course.course_id.coursename})")
+
+            in_course.objects.create(course_id=course_id, student=student)
+            messages.success(request, f"You have successfully joined {course_id.coursename}.")
+            return redirect('app/course_success', course_id=course_id)
         else:
-            return HttpResponse("You are already enrolled in this course.")
+            return render(request, 'app/join.html', {'course_id': course_id})
     else:
         return redirect(reverse('login'))
 
@@ -153,19 +156,25 @@ def created(request):
     else:
         return redirect(reverse('login'))
 
+def student_list(request):
+    in_courses = in_course.objects.all()
+    return render(request, 'app/student_list.html', {'in_courses': in_courses})
+
 def course_list(request):
     courses = Course.objects.all() # get all courses
     course_list = []
     for course in courses:
         student_url = reverse('join') + '?course_id=' + str(course.course_id)
         instructor_url = reverse('attendance') + '?course_id=' + str(course.course_id)
+        student_list_url = reverse('student_list') + '?course_id=' + str(course.course_id)
         upload_url = reverse('upload') + '?course_id=' + str(course.course_id)
-        course_dict = {'course': course, 'student_url': student_url, 'instructor_url': instructor_url, 'upload_url': upload_url,
+        course_dict = {'course': course, 'student_url': student_url, 'instructor_url': instructor_url, 'student_list_url': student_list_url, 'upload_url': upload_url,
                        'coursename': course.coursename, 'course_id': course.course_id, 'instructor': course.instructor,
                        'day_of_week': course.day_of_week, 'students': course.students, 'class_start_time': course.class_start_time,
                        'class_end_time': course.class_end_time, 'meeting_days' : course.meeting_days,}
         course_list.append(course_dict)
     return render(request, 'app/course_list.html', {'courses': course_list})
+
 
 ##def course_list(request):
 ##    courses = Course.objects.all() # get all courses
