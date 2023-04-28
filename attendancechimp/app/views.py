@@ -8,7 +8,7 @@ from django import forms
 from .forms import SignUpForm, CourseForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import user, Course, in_course, Attendance
+from .models import user, Course, in_course, Attendance, addqrCode
 from django.urls import reverse
 from datetime import datetime
 import uuid
@@ -67,15 +67,26 @@ def attendance(request):
 
 def upload(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
-        # upload qr
+        course_id = request.GET.get('course_id')
+    try:
+        # Check if the user is associated with the course
+        course_id = Course.objects.get(course_id=course_id)
+        in_course = in_course.objects.get(user=request.user, course_id=course_id)
+    except (Course.DoesNotExist, in_course.DoesNotExist):
+        # If the user is not associated with the course, raise a PermissionDenied error
         return redirect(reverse('login'))
-    else:
-        return redirect(reverse('login'))
-
-def upload(request):
-    if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
-        #upload qr
-        return redirect(reverse('login'))
+    
+    if request.method == 'POST':
+        # Get the uploaded file
+        uploaded_file = request.FILES['file']
+        # Create a new QRCode object and save the uploaded file to it
+        qrcode = addqrCode(course_id=course_id, user=request.user)
+        qrcode.qr_code_image.save(uploaded_file.name, uploaded_file, save=True)
+        # Redirect the user to a success page
+        return redirect('qr_upload_success')
+    
+    # Render the upload form template
+    return render(request, 'qr_upload.html', {'course_id': course_id})
 
 @login_required(login_url='/accounts/login/')
 def course_success(request, course_id):

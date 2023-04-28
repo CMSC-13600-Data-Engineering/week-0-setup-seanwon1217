@@ -31,24 +31,7 @@ class Course(models.Model):
     day_of_week = models.CharField(max_length = 255, choices = days_of_week)
     meeting_days = models.CharField(max_length=255)
     students = models.ManyToManyField(User, related_name='courses_taken')
-    #im not sure about the enrolled student thing
-    #def is_enrolled_in_course_at_same_time(self, course):
-    #for enrolled_course in self.courses_taken.all():
-    #    if enrolled_course.day_of_week == course.day_of_week and enrolled_course.class_start_time <= course.class_end_time and enrolled_course.class_end_time >= course.class_start_time:
-    #        return True
-    #    return False
-    
 
-
-
-    #def __str__(self):
-        #return self.name
-
-    #def save(self, *args, **kwargs):
-        #if not self.code:
-            # Generate a unique course code
-            #self.code = str(uuid.uuid4()).replace('-', '')[:16]
-        #super().save(*args, **kwargs)
 
 # the class in_course creates a table with course's and the people in the course. It then
 # says whether the user is an instructor
@@ -62,6 +45,7 @@ class in_course(models.Model):
 
     def __str__(self):
         return f"{self.course_id.coursename} - {self.student.username}"
+    
 # the class qrCode creates a table with a unique id for each qrCode and with course_id,
 # userid, and time.
 class Attendance(models.Model):
@@ -81,10 +65,13 @@ class Attendance(models.Model):
         return class_code
 
 # the definition addqrCode makes a new qrCode when called.
-def addqrCode (qrid, course_id, userid):
-    if in_course.objects.filter(userid=userid).count() == 0:
-        raise ValueError('No user with the userid' + userid + ' exists in this class')
-    if Course.objects.filter(course_id=course_id).count() == 0:
-        raise ValueError('No course with the course_id' + course_id + ' exists')
-    new_qrCode = Attendance(qrid=qrid, course_id=course_id, userid=userid, time=datetime.date.today())
-    new_qrCode.save()
+class addqrCode (models.Model):
+    course_id = models.ForeignKey(Course,on_delete=models.CASCADE)
+    user= models.ForeignKey(user, on_delete=models.CASCADE)
+    qr_code_image = models.ImageField(upload_to='qrcodes/')
+##    if in_course.objects.filter(userid=userid).count() == 0:
+##        raise ValueError('No user with the userid' + userid + ' exists in this class')
+##    if Course.objects.filter(course_id=course_id).count() == 0:
+##        raise ValueError('No course with the course_id' + course_id + ' exists')
+##    new_qrCode = Attendance(qrid=qrid, course_id=course_id, userid=userid, time=datetime.date.today())
+##    new_qrCode.save()
