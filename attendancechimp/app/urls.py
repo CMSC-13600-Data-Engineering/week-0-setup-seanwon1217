@@ -15,4 +15,6 @@ urlpatterns = [
     #path('course_success/', views.create, name='course_success'),
     path('upload/', views.upload, name='upload'),
     path('course_list/', views.course_list, name='course_list'),
+    path('overview/', views.overview, name='overview'),
+    path('student/', views.student, name='student'),
 ]
