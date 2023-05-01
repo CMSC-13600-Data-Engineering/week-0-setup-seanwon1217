@@ -31,6 +31,7 @@
           <td><a href="{% url 'join' %}?course_id={{ course.course_id }}">Join</a></td>
           <td><a href="{% url 'attendance' %}?course_id={{ course.course_id }}">Attendance</a></td>
           <td><a href="{% url 'upload' %}?course_id={{ course.course_id }}">Upload</a></td>
+	  <td><a href="{% url 'overview' %}?course_id={{ course.course_id }}">Overview</a></td>
         </tr>
       {% endfor %}
     </tbody>
