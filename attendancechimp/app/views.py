@@ -70,13 +70,14 @@ def upload(request):
         course_id = request.GET.get('course_id')
         course = Course.objects.filter(course_id=course_id).first()
 
-        if not course:
-            return HttpResponseNotFound("Invalid course ID")
+        #if not course:
+        #    return HttpResponseNotFound("Invalid course ID")
 
-        if not in_course.objects.filter(course_id=course, student=request.user).exists():
-            return HttpResponseNotFound("You have not joined this course.")
+        #if not in_course.objects.filter(course_id=course, student=request.user).exists():
+        #    return HttpResponseNotFound("You have not joined this course.")
 
         if request.method == 'POST' and request.FILES.get('uploaded'):
+     #   if request.method == 'POST':
             qr_code_image = request.FILES['uploaded']
             addqrCode.objects.create(
                 user=request.user,
@@ -257,7 +258,41 @@ def overview(request):
         total_students = in_courses.count()
         addqrCodes = Attendance.objects.filter(course_id=course)
         total_qr_codes = addqrCodes.count()
-        uploaded_images = addqrCodes.filter(qrid__isnull=False).count()
+        context = {
+            'coursename': course.coursename,
+            'in_courses': in_courses,
+            'course_id': course.course_id,
+            'total_students': total_students,
+            'total_qr_codes': total_qr_codes}
+        
+##        return render(request, 'app/overview.html', {'coursename': course.coursename, 'in_courses': in_courses, 'course_id': course.course_id, 'total_students': total_students})
+##    else:
+##        return HttpResponse("You don't have permission to access this page.")
+        return render(request, 'app/overview.html', context)
+    else:
+        return redirect(reverse('login'))
+
+
+def student(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse('login'))
+
+    user = request.user
+    course_id = request.GET.get('course_id') or request.POST.get('course_id')
+    if not course_id:
+        return HttpResponse("Course id not found")
+
+    try:
+        course = Course.objects.get(course_id=course_id)
+    except Course.DoesNotExist:
+        return redirect(reverse('index'))
+
+    if user.groups.filter(name='Instructor').exists():
+        in_courses = in_course.objects.filter(course_id=course)
+        total_students = in_courses.count()
+        addqrCodes = Attendance.objects.filter(course_id=course)
+        total_qr_codes = addqrCodes.count()
+        name_student = in_courses.values_list('student', flat=True)
 
         context = {
             'coursename': course.coursename,
@@ -265,30 +300,9 @@ def overview(request):
             'course_id': course.course_id,
             'total_students': total_students,
             'total_qr_codes': total_qr_codes,
-            'uploaded_images': uploaded_images}
-        
-##        return render(request, 'app/overview.html', {'coursename': course.coursename, 'in_courses': in_courses, 'course_id': course.course_id, 'total_students': total_students})
-##    else:
-##        return HttpResponse("You don't have permission to access this page.")
-        return render(request, 'app/overview.html', context)
+            'name_student': name_student}
+        return render(request, 'app/student.html', context)
     else:
-        return HttpResponse("You don't have permission to access this page.")
+        return redirect(reverse('login'))
 
-
-def student(request):
-    courses = Course.objects.all() # get all courses
-    course_list = []
-    for course in courses:
-        student_url = reverse('join') + '?course_id=' + str(course.course_id)
-        overview_url = reverse('overview') + '?course_id=' + str(course.course_id)
-        join_url = reverse('join') + '?course_id=' + str(course.course_id)
-        attendance_url = reverse('attendance') + '?course_id=' + str(course.course_id)
-        student_list_url = reverse('student_list') + '?course_id=' + str(course.course_id)
-        upload_url = reverse('upload') + '?course_id=' + str(course.course_id)
-        course_dict = {'course': course, 'join_url': join_url, 'student_url':student_url, 'overview_url':overview_url, 'attendance_url': attendance_url, 'student_list_url': student_list_url, 'upload_url': upload_url,
-                       'coursename': course.coursename, 'course_id': course.course_id, 'instructor': course.instructor,
-                       'day_of_week': course.day_of_week, 'students': course.students, 'class_start_time': course.class_start_time,
-                       'class_end_time': course.class_end_time, 'meeting_days' : course.meeting_days,}
-        course_list.append(course_dict)
-    return render(request, 'app/course_list.html', {'courses': course_list})
 
