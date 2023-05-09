@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<html>
+<head>
+	<title>Join</title>
+	<style>
+		html, body {
+			height: 100%;
+		}
+		body {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+	</style>
+</head>
+<body> 
+<h1>Course Name: {{coursename}}</h1>
+<p>Course Number: {{course_id}}</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-primary">Join</button>
+</form>
+<p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
+
+{% endblock %}</span></p>
+</center>
+</body>
+</html>

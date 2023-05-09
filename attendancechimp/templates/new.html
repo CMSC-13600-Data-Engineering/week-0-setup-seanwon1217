@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<html>
+<head>
+<p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
+	<title>Sign Up</title>
+	<style>
+		html, body {
+			height: 100%;
+		}
+		body {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+	</style>
+</head>
+<body>
+    <h1>Sign Up</h1>
+    <form method="post" action="{% url 'new' %}">
+        {% csrf_token %}
+{{ form.as_p }}
+        <p><input type="submit" value="Sign Up"></p>
+    </form>
+
+</body>
+</html>
+
+{% endblock %}

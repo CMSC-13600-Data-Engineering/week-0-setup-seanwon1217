@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>In Course List</title>
+  </head>
+  <body>
+    <h1>In Course List</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Course ID</th>
+          <th>Student</th>
+          <th>Enrollment Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for in_course in in_courses %}
+        <tr>
+          <td>{{ in_course.course_id }}</td>
+          <td>{{ in_course.student }}</td>
+          <td>{{ in_course.enrollment_date }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3">No in course found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>
