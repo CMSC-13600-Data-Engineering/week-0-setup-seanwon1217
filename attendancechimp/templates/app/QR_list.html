@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>QR Code List</title>
+  </head>
+  <body>
+    <h1>QR Code List</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Course ID</th>
+          <th>Student</th>
+          <th>Upload Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for addqrcode in addqrcodes %}
+        <tr>
+          <td>{{ addqrcode.course_id.course_id }}</td>
+          <td>{{ addqrcode.student }}</td>
+          <td>{{ addqrcode.time }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3">No QR codes found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>

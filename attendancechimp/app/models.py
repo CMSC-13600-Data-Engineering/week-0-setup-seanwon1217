@@ -6,6 +6,7 @@ from django.utils.crypto import get_random_string
 
 # Create your models here.
 # There will be two classes of users: students and instructorss.
+time = timezone.now()
 
 # the class user creates a table with each user's name and assigns them an ID
 class user(models.Model):
@@ -51,9 +52,9 @@ class in_course(models.Model):
 class Attendance(models.Model):
     qrid = models.AutoField(primary_key=True)
     course_id = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
-    userid = models.ForeignKey(user, on_delete=models.SET_NULL, null=True)
+    userid = models.ForeignKey(user, on_delete=models.CASCADE)
     class_code = models.CharField(max_length=64)
-    time = models.DateTimeField(default=timezone.now)
+    time = models.DateTimeField()
     @classmethod
     def generate_class_code(cls, course_id):
         # Generate a random string for class code
@@ -64,11 +65,11 @@ class Attendance(models.Model):
         # Return the class code
         return class_code
 
-# the definition addqrCode makes a new qrCode when called.
-class addqrCode (models.Model):
-    course_id = models.ForeignKey(Course,on_delete=models.CASCADE)
+# the definition Addqrcode makes a new qrCode when called.
+class Addqrcode(models.Model):
+    course_id = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
     user= models.ForeignKey(user, on_delete=models.CASCADE)
-    time = models.DateTimeField(default=timezone.now)
+    time = models.DateTimeField()
     qr_code_image = models.ImageField(upload_to='qrcodes/')
 ##    if in_course.objects.filter(userid=userid).count() == 0:
 ##        raise ValueError('No user with the userid' + userid + ' exists in this class')

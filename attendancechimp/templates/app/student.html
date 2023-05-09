@@ -1,22 +1,18 @@
 {% extends 'base.html' %}
 
 {% block content %}
-	<h1>Course Name: {{ coursename }} {{ course_id }}</h1>
-	<p>Number of Students in Class: {{ total_students }}</p>
-	{% for student in in_courses %}
-	<p>{{ student.student }}</p>
-	{% endfor %}
-	<table>
-		<tr>
-			<th>Student Name</th>
-			<th>Uploaded Image</th>
-		</tr>
-		{% for student in in_courses %}
-		<tr>
-			<td>{{ student.student }}</td>
-		</tr>
-		{% endfor %}
-	</table>
-	<p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
-	<p class="p1"><span class="s3"><a href="{% url 'course_list' %}">Course List</a></span><span class="s1"></span></p>
+    <h1>Course Name: {{ coursename }} {{ course_id }}</h1>
+    <p>Number of Students in Class: {{ total_students }}</p>
+
+    {% for student in in_courses %}
+        <p>Student: {{ student.student }}</p>
+        <ul>
+            {% for attendance in attendances %}
+		    <li> {{ attendance.userid }} {{ attendance.time|date:"F d, Y" }}</li>
+            {% endfor %}
+	    
+        </ul>
+    {% endfor %}
+    <p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
+    <p class="p1"><span class="s3"><a href="{% url 'course_list' %}">Course List</a></span><span class="s1"></span></p>
 {% endblock %}
