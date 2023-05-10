@@ -67,11 +67,11 @@
       <h1>Upload QR Code</h1>
     </header>
 
-    <form action="{% url 'upload' %}" method="post">
-	{% csrf_token %}
-`	<input type="file" name="uploaded">
+    <form action="{% url 'upload' %}" method="post" enctype="multipart/form-data">
+      <!--{% csrf_token %}-->
+`	    <!--<input type="file" name = 'qr_image'>-->
         {{ form.as_p }}
-        <input type="submit" value="Upload">
+      <input type="submit" value="Upload">
     </form>
   </body>
 </html>

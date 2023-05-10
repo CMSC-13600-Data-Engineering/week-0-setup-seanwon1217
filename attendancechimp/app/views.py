@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseNotFound
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User, Group
 from django import forms
-from .forms import SignUpForm, CourseForm
+from .forms import SignUpForm, CourseForm, qrForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import user, Course, in_course, Attendance, addqrCode
@@ -65,28 +66,55 @@ def attendance(request):
     else:
         return redirect(reverse('login'))
 
+@csrf_exempt
+@login_required(login_url='/accounts/login/')  
 def upload(request):
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
-        course_id = request.GET.get('course_id')
-        course = Course.objects.filter(course_id=course_id).first()
+        #course_id = request.GET.get('course_id')
+        #course = Course.objects.filter(course_id=course_id)
 
-        if not course:
-            return HttpResponseNotFound("Invalid course ID")
+        #if not Course.objects.filter(course_id=course_id).exists():
+       # if not Course.objects.filter(course_id=course_id).exists(): return HttpResponseNotFound("test")
+            #return HttpResponseNotFound("Invalid course ID")
 
-        if not in_course.objects.filter(course_id=course, student=request.user).exists():
-            return HttpResponseNotFound("You have not joined this course.")
+        #if not in_course.objects.filter(course_id=course, student=request.user).exists():
+            #return HttpResponseNotFound("You have not joined this course.")
+        
+        if request.method == 'POST':
+            form = qrForm(request.POST, request.FILES)
+            if form.is_valid():
+                #VALIDATION
+                #course_id = form.cleaned_data('course_id')
+                #course = Course.objects.filter(course_id=course_id)
+                #form.save()
+                image = request.FILES['qr_code_image']
+                new_qr = addqrCode(user=request.user,time=datetime.now(),qr_code_image=image)#,course_id=course
+                new_qr.save()
+                #handle_qr(request, image = request.FILES['qr_code_image'])
+                return HttpResponseNotFound("QR code uploaded successfully.")
+        else:
+            form = qrForm()
+    else: return redirect(reverse('login'))
+    return render(request, 'app/upload.html', {'form':form})
 
-        if request.method == 'POST' and request.FILES.get('uploaded'):
-            qr_code_image = request.FILES['uploaded']
-            addqrCode.objects.create(
-                user=request.user,
-                time=timezone.now(),
-                course=course,
-                qr_code_image=qr_code_image
-            )
-        return render(request, 'app/upload.html', {'course_id': course_id})
-    else:
-        return redirect(reverse('login'))
+@csrf_exempt  #PUSH TO WEEK 2
+def handle_qr(request, image):
+    #user = request.GET.get('user')
+    course_id = request.GET.get('course_id', None)
+    course = Course.objects.filter(course_id=course_id).first()        
+    new_qr = addqrCode(user=request.user,time=datetime.now(),course_id=course,qr_code_image=image)
+    new_qr.save()
+        #newcode = addqrCode(user=user,time=datetime.now(),course_id=course,qr_code_image=qr_image)        
+        #newcode.save()
+    return HttpResponseNotFound("QR code uploaded successfully.")
+
+    
+   # qr_code_image = request.FILES['uploaded']
+           # addqrCode.objects.create(
+               # user=request.user,
+           #     time=timezone.now(),
+              #  course=course,
+             #   qr_code_image=qr_code_image
 
         
 @login_required(login_url='/accounts/login/')
@@ -172,18 +200,6 @@ def course_list(request):
                        'class_end_time': course.class_end_time, 'meeting_days' : course.meeting_days,}
         course_list.append(course_dict)
     return render(request, 'app/course_list.html', {'courses': course_list})
-
-
-##def course_list(request):
-##    courses = Course.objects.all() # get all courses
-##    courses = Course.objects.filter(course_id=course_id)
-##    student_url = reverse('join') + '?course_id=' + str(course.course_id)
-##    instructor_url = reverse('attendance') + '?course_id=' + str(course.course_id)
-##    upload_url = reverse('upload') + '?course_id=' + str(course.course_id)
-##    return render(request, 'app/course_list.html',
-##                  {'courses': courses'course': course, 'student_url': student_url, 'instructor_url': instructor_url, 'upload_url': upload_url,
-##                   'coursename': course.coursename, 'course_id': course.course_id})
-
 
 @login_required(login_url='/accounts/login/')
 def create(request):
