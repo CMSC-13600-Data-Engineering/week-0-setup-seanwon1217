@@ -50,6 +50,8 @@ def attendance(request):
         course_instructor = request.user
         course_id = request.GET.get('course_id', None)
         course = Course.objects.get(course_id=course_id)
+        email = request.user.email
+        u = User.objects.filter(email=email).first()
      
         if course_instructor != course.instructor:
             return HttpResponseNotFound("You are not the instructor of this course.") 
@@ -57,7 +59,7 @@ def attendance(request):
         class_code = uuid.uuid4()
         #now = timezone.now()
 
-        new_attendance = Attendance(class_code=class_code, course_id=course, time=datetime.now())
+        new_attendance = Attendance(class_code=class_code, userid=u, course_id=course, time=datetime.now())
         new_attendance.save()   
              
         return render(request, 'app/QRCode.html', {'class_code':class_code})
@@ -71,6 +73,7 @@ def upload(request):
         course = Course.objects.filter(course_id=course_id).first()
         email = request.user.email
         u = User.objects.filter(email=email).first()
+        handle_url = reverse('handle_qr') + '?course_id=' + str(course.course_id)
 
         #if not Course.objects.filter(course_id=course_id).exists():
            #return HttpResponseNotFound("Invalid course ID")
@@ -79,11 +82,16 @@ def upload(request):
             return HttpResponseNotFound("You have not joined this course.")
         
     else: return redirect(reverse('login'))
-    return render(request, 'app/upload.html', {'form':form})
+    return render(request, 'app/upload.html', {'form':form, 'handle_url': handle_url})
 
 def handle_qr(request):
     course_id = request.GET.get('course_id')
     course = Course.objects.filter(course_id=course_id).first()
+##    latest_attendance = Attendance.objects.filter(course_id=course).first()
+##    if latest_attendance is None:
+##        return HttpResponseNotFound(f"No attendance records found for course {course}.")
+##    code = latest_attendance.class_code
+    
     email = request.user.email
     u = User.objects.filter(email=email).first()
     form = qrForm(request.POST, request.FILES)
@@ -91,7 +99,7 @@ def handle_qr(request):
         if form.is_valid():
             #VALIDATION
             image = request.FILES['qr_code_image']
-            new_qr = Addqrcode(user=u,course_id=course,time=datetime.now(),qr_code_image=image)
+            new_qr = Addqrcode(user=u,course_id=course,time=datetime.now(),qr_code_image=image, class_code=Attendance.objects.filter(course_id=course).order_by('-time').first())
             new_qr.save()
             #handle_qr(request, image = request.FILES['qr_code_image'])
             return HttpResponseNotFound("QR code uploaded successfully.")
@@ -102,6 +110,7 @@ def QR_list(request):
     Addqrcodes = Addqrcode.objects.all()
     #user=u,course_id=course,time=datetime.now(),qr_code_image=image
     return render(request, 'app/QR_list.html', {'Addqrcodes': Addqrcodes})
+
 
         
 @login_required(login_url='/accounts/login/')
@@ -283,6 +292,7 @@ def overview(request):
             'course_id': course.course_id,
             'total_students': total_students,
             'total_qr_codes': total_qr_codes,
+            'class_code': Attendance.class_code,
             'Addqrcodes': Addqrcodes,
             'Attendances': Attendances}
         

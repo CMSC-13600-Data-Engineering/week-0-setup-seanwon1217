@@ -52,7 +52,7 @@ class in_course(models.Model):
 class Attendance(models.Model):
     qrid = models.AutoField(primary_key=True)
     course_id = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
-    userid = models.ForeignKey(user, on_delete=models.SET_NULL, null=True)
+    userid = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     class_code = models.CharField(max_length=64)
     time = models.DateTimeField(default=timezone.now)
     @classmethod
@@ -71,3 +71,5 @@ class Addqrcode(models.Model):
     user= models.ForeignKey(User, on_delete=models.CASCADE)
     time = models.DateTimeField()
     qr_code_image = models.ImageField(upload_to='qrcodes/')
+    class_code = models.ForeignKey(Attendance, on_delete=models.SET_NULL, null=True)
+
