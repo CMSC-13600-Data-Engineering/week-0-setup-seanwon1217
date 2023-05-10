@@ -52,9 +52,9 @@ class in_course(models.Model):
 class Attendance(models.Model):
     qrid = models.AutoField(primary_key=True)
     course_id = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
-    userid = models.ForeignKey(user, on_delete=models.CASCADE)
+    userid = models.ForeignKey(user, on_delete=models.SET_NULL, null=True)
     class_code = models.CharField(max_length=64)
-    time = models.DateTimeField()
+    time = models.DateTimeField(default=timezone.now)
     @classmethod
     def generate_class_code(cls, course_id):
         # Generate a random string for class code
