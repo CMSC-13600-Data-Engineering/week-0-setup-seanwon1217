@@ -7,8 +7,8 @@
     {% for student in in_courses %}
         <p>Student: {{ student.student }}</p>
         <ul>
-            {% for attendance in attendances %}
-		    <li> {{ attendance.userid }} {{ attendance.time|date:"F d, Y" }}</li>
+            {% for Addqrcode in Addqrcodes %}
+		    <li> {{ Addqrcode.userid }} {{ Addqrcode.time|date:"F d, Y" }}</li>
             {% endfor %}
 	    
         </ul>

@@ -5,7 +5,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User, Group
 from django import forms
-from .forms import SignUpForm, CourseForm
+from .forms import SignUpForm, CourseForm, qrForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import user, Course, in_course, Attendance, Addqrcode
@@ -13,10 +13,7 @@ from django.urls import reverse
 from datetime import datetime, timezone
 import uuid
 
-instructor_group, created = Group.objects.get_or_create(name='Instructor')
-student_group, created = Group.objects.get_or_create(name='Student')
 @login_required(login_url='/accounts/login/')
-
 def join(request):
     user = request.user
     course_id = request.GET.get('course_id') or request.POST.get('course_id')
@@ -68,37 +65,42 @@ def attendance(request):
         return redirect(reverse('login'))
 
 def upload(request):
+    form = qrForm(request.POST, request.FILES)
     if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
         course_id = request.GET.get('course_id')
         course = Course.objects.filter(course_id=course_id).first()
+        email = request.user.email
+        u = User.objects.filter(email=email).first()
 
-        #if not course:
-        #    return HttpResponseNotFound("Invalid course ID")
+        #if not Course.objects.filter(course_id=course_id).exists():
+           #return HttpResponseNotFound("Invalid course ID")
 
-        #if not in_course.objects.filter(course_id=course, student=request.user).exists():
-        #    return HttpResponseNotFound("You have not joined this course.")
+        if not in_course.objects.filter(course_id=course, student=request.user).exists():
+            return HttpResponseNotFound("You have not joined this course.")
         
-        if request.method == 'POST' and request.FILES.get('uploaded'):
-     #   if request.method == 'POST':
-            qr_code_image = request.FILES['uploaded']
-            Addqrcode.objects.create(
-                user=request.user,
-                time=datetime.now(),
-                course_id=course,
-                qr_code_image=qr_code_image
-            )
-##            Attendance.objects.create(
-##                userid=userid,
-##                time=datetime.now(),
-##                course_id=course,
-##                class_code="YOUR_CLASS_CODE_HERE"
-##            )
-        return render(request, 'app/upload.html', {'course_id': course_id})
+    else: return redirect(reverse('login'))
+    return render(request, 'app/upload.html', {'form':form})
+
+def handle_qr(request):
+    course_id = request.GET.get('course_id')
+    course = Course.objects.filter(course_id=course_id).first()
+    email = request.user.email
+    u = User.objects.filter(email=email).first()
+    form = qrForm(request.POST, request.FILES)
+    if request.method == 'POST': 
+        if form.is_valid():
+            #VALIDATION
+            image = request.FILES['qr_code_image']
+            new_qr = Addqrcode(user=u,course_id=course,time=datetime.now(),qr_code_image=image)
+            new_qr.save()
+            #handle_qr(request, image = request.FILES['qr_code_image'])
+            return HttpResponseNotFound("QR code uploaded successfully.")
     else:
-        return redirect(reverse('login'))
+        form = qrForm()
 
 def QR_list(request):
     Addqrcodes = Addqrcode.objects.all()
+    #user=u,course_id=course,time=datetime.now(),qr_code_image=image
     return render(request, 'app/QR_list.html', {'Addqrcodes': Addqrcodes})
 
         
@@ -121,6 +123,8 @@ def course_success(request, course_id):
 
 def index(request):
     classdict = {'class1':'CMSC136'}
+    instructor_group, created = Group.objects.get_or_create(name='Instructor')
+    student_group, created = Group.objects.get_or_create(name='Student')
     return render(request, 'app/index.html', classdict)
 
 def new(request):
@@ -269,14 +273,18 @@ def overview(request):
     if user.groups.filter(name='Instructor').exists():
         in_courses = in_course.objects.filter(course_id=course)
         total_students = in_courses.count()
-        Addqrcodes = Attendance.objects.filter(course_id=course)
+        Addqrcodes = Addqrcode.objects.filter(course_id=course)
+        Addqrcodes = Addqrcode.objects.all()
+        Attendances = Attendance.objects.all()
         total_qr_codes = Addqrcodes.count()
         context = {
             'coursename': course.coursename,
             'in_courses': in_courses,
             'course_id': course.course_id,
             'total_students': total_students,
-            'total_qr_codes': total_qr_codes}
+            'total_qr_codes': total_qr_codes,
+            'Addqrcodes': Addqrcodes,
+            'Attendances': Attendances}
         
 ##        return render(request, 'app/overview.html', {'coursename': course.coursename, 'in_courses': in_courses, 'course_id': course.course_id, 'total_students': total_students})
 ##    else:
@@ -303,7 +311,8 @@ def student(request):
     if user.groups.filter(name='Instructor').exists():
         in_courses = in_course.objects.filter(course_id=course)
         total_students = in_courses.count()
-      #  Addqrcodes = Addqrcode.objects.filter(course_id=course)
+        Addqrcodes = Addqrcode.objects.filter(course_id=course)
+        Addqrcodes = Addqrcode.objects.all()
         attendances = Attendance.objects.filter(course_id=course)
         total_qr_codes = attendances.count()
         name_student = in_courses.values_list('student', flat=True)
@@ -314,9 +323,7 @@ def student(request):
             'course_id': course.course_id,
             'total_students': total_students,
             'total_qr_codes': total_qr_codes,
-            'name_student': name_student,
-           # 'Addqrcodes': Addqrcodes,
-            'attendances': attendances}
+            'name_student': name_student}
         return render(request, 'app/student.html', context)
     else:
         return redirect(reverse('login'))

@@ -14,6 +14,7 @@ urlpatterns = [
     path('course_success/<int:course_id>/', views.course_success, name='course_success'),
     #path('course_success/', views.create, name='course_success'),
     path('upload/', views.upload, name='upload'),
+    path('handle_qr/', views.handle_qr, name='handle_qr'),
     path('course_list/', views.course_list, name='course_list'),
     path('QR_list/', views.QR_list, name='QR_list'),
     path('overview/', views.overview, name='overview'),

@@ -14,11 +14,11 @@
         </tr>
       </thead>
       <tbody>
-        {% for addqrcode in addqrcodes %}
+        {% for Addqrcode in Addqrcodes %}
         <tr>
-          <td>{{ addqrcode.course_id.course_id }}</td>
-          <td>{{ addqrcode.student }}</td>
-          <td>{{ addqrcode.time }}</td>
+          <td>{{ Addqrcode.course }}</td>
+          <td>{{ Addqrcode.user }}</td>
+          <td>{{ Addqrcode.time }}</td>
         </tr>
         {% empty %}
         <tr>

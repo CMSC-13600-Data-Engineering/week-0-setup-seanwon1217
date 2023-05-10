@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.forms import ModelForm
-from .models import Course
+from .models import Addqrcode, Course
 from django.core.exceptions import ValidationError
 
 class SignUpForm(UserCreationForm):
@@ -42,6 +42,13 @@ class CourseForm(ModelForm):
 
         if start_date and end_date and end_date < start_date:
             raise ValidationError('End date must be after start date.')
+        
+class qrForm(ModelForm):
+    qr_code_image = forms.ImageField()
+    #course_id = forms.CharField()
+    class Meta:
+        model = Addqrcode
+        fields = ["qr_code_image"]
 
 # Creating a form to add a course.
 form = CourseForm()

@@ -68,12 +68,6 @@ class Attendance(models.Model):
 # the definition Addqrcode makes a new qrCode when called.
 class Addqrcode(models.Model):
     course_id = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
-    user= models.ForeignKey(user, on_delete=models.CASCADE)
+    user= models.ForeignKey(User, on_delete=models.CASCADE)
     time = models.DateTimeField()
     qr_code_image = models.ImageField(upload_to='qrcodes/')
-##    if in_course.objects.filter(userid=userid).count() == 0:
-##        raise ValueError('No user with the userid' + userid + ' exists in this class')
-##    if Course.objects.filter(course_id=course_id).count() == 0:
-##        raise ValueError('No course with the course_id' + course_id + ' exists')
-##    new_qrCode = Attendance(qrid=qrid, course_id=course_id, userid=userid, time=datetime.date.today())
-##    new_qrCode.save()
