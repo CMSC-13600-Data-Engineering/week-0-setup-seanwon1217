@@ -1,18 +1,14 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Course Name: {{ coursename }} {{ course_id }}</h1>
+    <h1>Course: {{ coursename }} {{ course_id }}</h1>
     <p>Number of Students in Class: {{ total_students }}</p>
 
-    {% for student in in_courses %}
-        <p>Student: {{ student.student }}</p>
-        <ul>
-            {% for Addqrcode in Addqrcodes %}
-		    <li> {{ Addqrcode.userid }} {{ Addqrcode.time|date:"F d, Y" }}</li>
-            {% endfor %}
-	    
-        </ul>
+    {% for in_course in in_courses %}
+        <p>Student: {{ in_course.student }} | <span class="s3"><a href="{% url 'student_attendance' %}?course_id={{course_id}}&student={{ in_course.student.id }}">Attendance</a></span><span class="s1"></span></p>
     {% endfor %}
+
+
     <p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
     <p class="p1"><span class="s3"><a href="{% url 'course_list' %}">Course List</a></span><span class="s1"></span></p>
 {% endblock %}

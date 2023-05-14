@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Course ID: {{ course_id }}</h1>
+    <p>Student ID: {{ student }}</p>
+    <table>
+        <thead>
+          <tr>
+            {% for meeting in meetings %}
+            <th>{{ meeting }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            {% for upload in uploads %}
+            <td>{{ upload }}</td>
+            {% endfor %}
+          </tr>
+        </tbody>
+      </table>
+
+{% endblock %}

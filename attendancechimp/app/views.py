@@ -263,7 +263,48 @@ def create(request):
     else:
         return redirect(reverse('login'))
 
+def class_session(request):
+    user = request.user
+    qrid = request.GET.get('qrid') or request.POST.get('qrid')
+    course_id = request.GET.get('course_id') or request.POST.get('course_id')
+    if not course_id:
+        return HttpResponse("Course id not found")
 
+    try:
+        course = Course.objects.get(course_id=course_id)
+    except Course.DoesNotExist:
+        return redirect(reverse('index'))
+    if not qrid:
+        return HttpResponse("Class code not found")
+
+    try:
+        qr = Attendance.objects.get(qrid=qrid)
+    except Attendance.DoesNotExist:
+        return redirect(reverse('index'))
+
+    if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
+        Attendances= Attendance.objects.filter(class_code=qr.class_code)
+        Addqrcodes = Addqrcode.objects.filter(class_code=qr.qrid).values('user').distinct()
+        total_qr_codes = len(Addqrcodes) 
+        in_courses = in_course.objects.filter(course_id=course)
+        total_students = in_courses.count()
+        
+        overview_url = reverse('overview') + '?course_id=' + str(course.course_id)
+        context = {
+            'qrid': qr.qrid,
+            'overview_url': overview_url,
+            'coursename': course.coursename,
+            'in_courses': in_courses,
+            'course_id': course.course_id,
+            'class_code': qr.class_code,
+            'total_students': total_students,
+            'total_qr_codes': total_qr_codes,
+            'Addqrcodes': Addqrcodes,
+            'Attendances': Attendances,
+            'in_courses': in_courses,}
+        return render(request, 'app/class_session.html', context)
+    else:
+        return redirect(reverse('login'))
 
 def overview(request):
     if not request.user.is_authenticated:
@@ -280,20 +321,30 @@ def overview(request):
         return redirect(reverse('index'))
 
     if user.groups.filter(name='Instructor').exists():
+        student = user
         in_courses = in_course.objects.filter(course_id=course)
         total_students = in_courses.count()
-        Addqrcodes = Addqrcode.objects.filter(course_id=course)
-        Addqrcodes = Addqrcode.objects.all()
         Attendances = Attendance.objects.all()
-        total_qr_codes = Addqrcodes.count()
+        Addqrcodes = Addqrcode.objects.values('user').distinct()
+        Addqrcodess = Addqrcode.objects.all()
+        total_qr_codes = len(Addqrcodes)
+    
+        class_session_html = reverse('class_session') + '?qrid=' + str(Attendance.qrid) + 'course_id=' + str(course.course_id)
+        
+
+
+        
+
         context = {
             'coursename': course.coursename,
+            'class_session_html':class_session_html,
             'in_courses': in_courses,
             'course_id': course.course_id,
             'total_students': total_students,
             'total_qr_codes': total_qr_codes,
             'class_code': Attendance.class_code,
             'Addqrcodes': Addqrcodes,
+            'Addqrcodess':Addqrcodess,
             'Attendances': Attendances}
         
 ##        return render(request, 'app/overview.html', {'coursename': course.coursename, 'in_courses': in_courses, 'course_id': course.course_id, 'total_students': total_students})
@@ -322,10 +373,13 @@ def student(request):
         in_courses = in_course.objects.filter(course_id=course)
         total_students = in_courses.count()
         Addqrcodes = Addqrcode.objects.filter(course_id=course)
-        Addqrcodes = Addqrcode.objects.all()
+        #Addqrcodes = Addqrcode.objects.all()
         attendances = Attendance.objects.filter(course_id=course)
+        #meetingcodes = attendances
         total_qr_codes = attendances.count()
         name_student = in_courses.values_list('student', flat=True)
+       # uploaded = 
+        #student_uploads = Addqrcode.objects.filter()
 
         context = {
             'coursename': course.coursename,
@@ -333,9 +387,36 @@ def student(request):
             'course_id': course.course_id,
             'total_students': total_students,
             'total_qr_codes': total_qr_codes,
-            'name_student': name_student}
+            'name_student': name_student,
+            'Addqrcodes': Addqrcodes, 
+            'class_code': Attendance.class_code, 
+            'attendances': attendances
+            }
         return render(request, 'app/student.html', context)
     else:
         return redirect(reverse('login'))
+    
+def student_attendance (request):
+    if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
+        student = request.GET.get('student')
+        stu = User.objects.filter(id=student).first()
+        course_id = request.GET.get('course_id')
+        course = Course.objects.get(course_id=course_id)
+        attendances = Attendance.objects.filter(course_id=course)
+        att = attendances.last()
+        uploaded = Addqrcode.objects.filter(course_id=course, class_code = att,user=stu).exists()
+
+        meetings = []
+        uploads = []
+        for att in attendances:
+            meetings += [att.time]
+            if Addqrcode.objects.filter(course_id=course, class_code = att,user=stu).exists():
+                uploads += ['Uploaded']
+            else: uploads += ['QR Missing']
+
+        context = {'course_id': course_id, 'student': student, 'attendances': attendances, 
+                   'meetings':meetings, 'uploads':uploads}
+        return render(request, 'app/student_attendance.html', context)
+    else: return redirect(reverse('login'))
 
 
