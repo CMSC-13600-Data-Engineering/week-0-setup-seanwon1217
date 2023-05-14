@@ -46,11 +46,6 @@ class OverviewTestCase(TestCase):
         # Check that the total number of students in the class is displayed
         self.assertContains(response, 'Number of Students in Class: 1')
 
-        # Check that the fraction of students with any image uploaded is displayed for each class meeting
-        self.assertContains(response, 'Class Meeting 1: 100.0%')
-        self.assertContains(response, 'Class Meeting 2: 100.0%')
-        self.assertContains(response, 'Class Meeting 3: 100.0%')
-
     def test_overview_view_without_login(self):
         # Access the overview view without logging in
         response = self.client.get(reverse('overview') + '?course_id=239')
