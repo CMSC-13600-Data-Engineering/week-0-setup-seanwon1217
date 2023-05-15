@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Course Name: {{ coursename }} {{ course_id }}</h1>
+    <p>Number of Students in Class: {{ total_students }}</p>
+    <p>Number of students with uploaded images: {{ total_qr_codes }} / {{ total_students }}</p>
+    <p>QRID: {{ qrid }}</p>
+    <p>Class Code: {{ class_code }}</p>
+    
+
+
+	<p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p>
+	<p class="p1"><span class="s3"><a href="{% url 'course_list' %}">Course List</a></span><span class="s1"></span></p>
+{% endblock %}

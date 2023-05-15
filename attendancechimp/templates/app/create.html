@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<html>
+<head>
+<p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span><span class="s1"></span></p><p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span><span class="s1"></span></p>
+Hi </span><span class="s2">{{ user.username }}</span><span class="s1">! You are an Instructor 
+    <title>Create a Course</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+      
+      header {
+        background-color: #333;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      
+      h1 {
+        margin-top: 0;
+      }
+      
+      form {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        width: 50%;
+        margin: 0 auto;
+      }
+      
+      input[type="coursename"],
+      input[type="courseid"],
+      input[type="start_date"],
+      input[type="end_date"],
+      input[type="meeting_time"],
+      input[type="day_of_week"]
+      input[type="class_start_time"] {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        margin-bottom: 20px;
+      }
+      
+      input[type="submit"] {
+        background-color: #333;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      
+      input[type="submit"]:hover {
+        background-color: #555;
+      }
+      
+      label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Course Creation Form</h1>
+    </header>
+
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <form action="{% url 'create' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Create">
+    </form>
+  </body>
+</html>
+
+{% endblock %}

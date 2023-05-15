@@ -1,7 +1,422 @@
-from django.shortcuts import render
-from django.http import HttpResponse
+from django.shortcuts import render, redirect
+from django.http import HttpResponse, HttpResponseNotFound
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.models import User, Group
+from django import forms
+from .forms import SignUpForm, CourseForm, qrForm
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import user, Course, in_course, Attendance, Addqrcode
+from django.urls import reverse
+from datetime import datetime, timezone
+import uuid
 
+@login_required(login_url='/accounts/login/')
+def join(request):
+    user = request.user
+    course_id = request.GET.get('course_id') or request.POST.get('course_id')
+    if not course_id:
+        return HttpResponse("Course id not found")
+
+    try:
+        course_id = Course.objects.get(course_id=course_id)
+    except Course.DoesNotExist:
+        return redirect(reverse('index'))
+
+    if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
+        student = user
+
+        if request.method == 'POST':
+            for enrolled_course in in_course.objects.filter(student=student):
+                if set(enrolled_course.course_id.meeting_days) & set(course_id.meeting_days) and \
+                   enrolled_course.course_id.class_start_time < course_id.class_end_time and \
+                   enrolled_course.course_id.class_end_time > course_id.class_start_time:
+                    return HttpResponse(f"You cannot join this course because it conflicts with another course you are enrolled in. ({enrolled_course.course_id.coursename})")
+
+            in_course.objects.create(course_id=course_id, student=student)
+            success_msg = 'You have successfully joined the course'
+            messages.success(request, f"You have successfully joined {course_id.coursename}.")
+            return render(request, 'app/success.html', {'success_msg': success_msg})
+        else:
+            return render(request, 'app/join.html', {'coursename': course_id.coursename, 'course_id': course_id.course_id})
+    else:
+        return redirect(reverse('login'))
+
+@login_required(login_url='/accounts/login/')  
+def attendance(request):
+    if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
+        course_instructor = request.user
+        course_id = request.GET.get('course_id', None)
+        course = Course.objects.get(course_id=course_id)
+        email = request.user.email
+        u = User.objects.filter(email=email).first()
+     
+        if course_instructor != course.instructor:
+            return HttpResponseNotFound("You are not the instructor of this course.") 
+
+        class_code = uuid.uuid4()
+        #now = timezone.now()
+
+        new_attendance = Attendance(class_code=class_code, userid=u, course_id=course, time=datetime.now())
+        new_attendance.save()   
+             
+        return render(request, 'app/QRCode.html', {'class_code':class_code})
+    else:
+        return redirect(reverse('login'))
+
+def upload(request):
+    form = qrForm(request.POST, request.FILES)
+    if request.user.is_authenticated and request.user.groups.filter(name='Student').exists():
+        course_id = request.GET.get('course_id')
+        course = Course.objects.filter(course_id=course_id).first()
+        email = request.user.email
+        u = User.objects.filter(email=email).first()
+        handle_url = reverse('handle_qr') + '?course_id=' + str(course.course_id)
+
+        #if not Course.objects.filter(course_id=course_id).exists():
+           #return HttpResponseNotFound("Invalid course ID")
+
+        if not in_course.objects.filter(course_id=course, student=request.user).exists():
+            return HttpResponseNotFound("You have not joined this course.")
+        
+    else: return redirect(reverse('login'))
+    return render(request, 'app/upload.html', {'form':form, 'handle_url': handle_url})
+
+def handle_qr(request):
+    course_id = request.GET.get('course_id')
+    course = Course.objects.filter(course_id=course_id).first()
+##    latest_attendance = Attendance.objects.filter(course_id=course).first()
+##    if latest_attendance is None:
+##        return HttpResponseNotFound(f"No attendance records found for course {course}.")
+##    code = latest_attendance.class_code
+    
+    email = request.user.email
+    u = User.objects.filter(email=email).first()
+    form = qrForm(request.POST, request.FILES)
+    if request.method == 'POST': 
+        if form.is_valid():
+            #VALIDATION
+            image = request.FILES['qr_code_image']
+            new_qr = Addqrcode(user=u,course_id=course,time=datetime.now(),qr_code_image=image, class_code=Attendance.objects.filter(course_id=course).order_by('-time').first())
+            new_qr.save()
+            #handle_qr(request, image = request.FILES['qr_code_image'])
+            return HttpResponseNotFound("QR code uploaded successfully.")
+    else:
+        form = qrForm()
+
+def QR_list(request):
+    Addqrcodes = Addqrcode.objects.all()
+    #user=u,course_id=course,time=datetime.now(),qr_code_image=image
+    return render(request, 'app/QR_list.html', {'Addqrcodes': Addqrcodes})
+
+
+        
+@login_required(login_url='/accounts/login/')
+def course_success(request, course_id):
+    if not request.user.is_authenticated:
+        return redirect(reverse('create'))
+    
+    courses = Course.objects.filter(course_id=course_id)
+    if not courses:
+        return redirect(reverse('create'))
+    
+    course = courses.first()
+    join_url = reverse('join') + '?course_id=' + str(course.course_id)
+    attendance_url = reverse('attendance') + '?course_id=' + str(course.course_id)
+    upload_url = reverse('upload') + '?course_id=' + str(course.course_id)
+    return render(request, 'app/course_success.html',
+                  {'course': course, 'join_url': join_url, 'attendance_url': attendance_url, 'upload_url': upload_url,
+                   'coursename': course.coursename, 'course_id': course.course_id})
 
 def index(request):
     classdict = {'class1':'CMSC136'}
+    instructor_group, created = Group.objects.get_or_create(name='Instructor')
+    student_group, created = Group.objects.get_or_create(name='Student')
     return render(request, 'app/index.html', classdict)
+
+def new(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            # Check if the email is already in use
+            email = form.cleaned_data.get('email')
+            if User.objects.filter(email=email).exists():
+                # Return error state - email already in use
+                return render(request, 'new.html', {'form': form, 'error': 'Email already in use'})
+
+            # Create a new user object
+            user = form.save()
+
+            # Add the user to the appropriate group
+            user_type = form.cleaned_data.get('user_type')
+            if user_type == 'instructor':
+                group = Group.objects.get(name='Instructor')
+            else:
+                group = Group.objects.get(name='Student')
+            group.user_set.add(user)
+
+            # Log the user in and redirect to success page
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password1')
+            user = authenticate(request, username=username, password=password)
+            login(request, user)
+            success_msg = 'User account created successfully.'
+            return render(request, 'app/success.html', {'success_msg': success_msg})
+    else:
+        form = SignUpForm()
+    return render(request, 'new.html', {'form': form})
+
+def success(request):
+    return render(request, 'app/success.html')
+
+@login_required(login_url='/accounts/login/')
+def created(request):
+    classdict = {'class1': 'CMSC136'}
+
+    if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
+        return render(request, 'app/create.html', classdict)
+    else:
+        return redirect(reverse('login'))
+
+def student_list(request):
+    in_courses = in_course.objects.all()
+    return render(request, 'app/student_list.html', {'in_courses': in_courses})
+
+def course_list(request):
+    courses = Course.objects.all() # get all courses
+    course_list = []
+    for course in courses:
+        student_url = reverse('join') + '?course_id=' + str(course.course_id)
+        overview_url = reverse('overview') + '?course_id=' + str(course.course_id)
+        join_url = reverse('join') + '?course_id=' + str(course.course_id)
+        attendance_url = reverse('attendance') + '?course_id=' + str(course.course_id)
+        student_list_url = reverse('student_list') + '?course_id=' + str(course.course_id)
+        QR_list_url = reverse('QR_list') + '?course_id=' + str(course.course_id)
+        upload_url = reverse('upload') + '?course_id=' + str(course.course_id)
+        course_dict = {'course': course, 'join_url': join_url, 'student_url':student_url, 'QR_list_url':QR_list_url, 'overview_url':overview_url, 'attendance_url': attendance_url, 'student_list_url': student_list_url, 'upload_url': upload_url,
+                       'coursename': course.coursename, 'course_id': course.course_id, 'instructor': course.instructor,
+                       'day_of_week': course.day_of_week, 'students': course.students, 'class_start_time': course.class_start_time,
+                       'class_end_time': course.class_end_time, 'meeting_days' : course.meeting_days,}
+        course_list.append(course_dict)
+    return render(request, 'app/course_list.html', {'courses': course_list})
+
+
+@login_required(login_url='/accounts/login/')
+def create(request):
+    if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
+        if request.method == 'POST':
+            form = CourseForm(request.POST)
+            if form.is_valid():
+                course = form.save(commit=False)
+                start_date = form.cleaned_data['start_date']
+                end_date = form.cleaned_data['end_date']
+                class_start_time = form.cleaned_data['class_start_time']
+                class_end_time = form.cleaned_data['class_end_time']
+                day_of_week = form.cleaned_data['day_of_week']
+                courseid = form.cleaned_data.get('course_id')
+                course_instructor = request.user
+                
+                # Check for identical course ID
+                query1 = Course.objects.filter(course_id=courseid)
+                if query1.exists():
+                    messages.error(request, 'This course already exists.')
+                    return render(request, 'app/create.html', {'form': form})
+                
+                # Check for identical course ID during the same time
+                #query1 = Course.objects.filter(course_id=courseid, start_date__lte=course.end_date, end_date__gte=course.start_date, class_start_time = class_start_time, class_end_time = class_end_time, day_of_week = day_of_week) or Course.objects.filter(course_id=courseid, end_date__gte=course.start_date, start_date__lte=course.end_date, class_start_time = class_start_time, class_end_time = class_end_time, day_of_week = day_of_week)
+                #if query1.exists():
+                    #messages.error(request, 'This course already exists.')
+                    #return render(request, 'app/create.html', {'form': form})
+                
+                # Check for instructor schedule conflict
+                query2 = Course.objects.filter(instructor = course_instructor)
+                query2_1 = query2.filter(class_start_time__lte=course.class_end_time, class_end_time__gte=course.class_start_time) | query2.filter(class_end_time__gte=course.class_start_time, class_start_time__lte=course.class_end_time)
+                query2_2 = query2_1.filter(day_of_week = day_of_week, start_date__lte=course.end_date, end_date__gte=course.start_date) | query2_1.filter(day_of_week = day_of_week, end_date__gte=course.start_date, start_date__lte=course.end_date)
+                if query2_2.exists():
+                    messages.error(request, 'You are already teaching a course at this time.')
+                    return render(request, 'app/create.html', {'form': form})
+            
+                # Check that end date comes after start date
+                if end_date < start_date:
+                    messages.error(request, 'End date must be after start date.')
+                    return render(request, 'app/create.html', {'form': form})
+                
+                # Check that end time comes after start time
+                if class_end_time < class_start_time:
+                    messages.error(request, 'End time must be after start time.')
+                    return render(request, 'app/create.html', {'form': form})
+               
+                course.instructor = request.user
+                course.save()
+                #messages.success(request, 'Course created successfully.')
+                success_msg = 'User account created successfully.'
+                join_url = reverse('join') + '?course_id=' + str(course.course_id)
+                attendance_url = reverse('attendance') + '?course_id=' + str(course.course_id)
+                upload_url = reverse('upload') + '?course_id=' + str(course.course_id)
+                return render(request, 'app/course_success.html', {'success_msg': success_msg, 'course': course, 'join_url': join_url, 'attendance_url': attendance_url, 'upload_url': upload_url,
+                   'coursename': course.coursename, 'course_id': course.course_id})
+        else:
+            form = CourseForm()
+        return render(request, 'app/create.html', {'form': form})
+    else:
+        return redirect(reverse('login'))
+
+def class_session(request):
+    user = request.user
+    qrid = request.GET.get('qrid') or request.POST.get('qrid')
+    course_id = request.GET.get('course_id') or request.POST.get('course_id')
+    if not course_id:
+        return HttpResponse("Course id not found")
+
+    try:
+        course = Course.objects.get(course_id=course_id)
+    except Course.DoesNotExist:
+        return redirect(reverse('index'))
+    if not qrid:
+        return HttpResponse("Class code not found")
+
+    try:
+        qr = Attendance.objects.get(qrid=qrid)
+    except Attendance.DoesNotExist:
+        return redirect(reverse('index'))
+
+    if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
+        Attendances= Attendance.objects.filter(class_code=qr.class_code)
+        Addqrcodes = Addqrcode.objects.filter(class_code=qr.qrid).values('user').distinct()
+        total_qr_codes = len(Addqrcodes) 
+        in_courses = in_course.objects.filter(course_id=course)
+        total_students = in_courses.count()
+        
+        overview_url = reverse('overview') + '?course_id=' + str(course.course_id)
+        context = {
+            'qrid': qr.qrid,
+            'overview_url': overview_url,
+            'coursename': course.coursename,
+            'in_courses': in_courses,
+            'course_id': course.course_id,
+            'class_code': qr.class_code,
+            'total_students': total_students,
+            'total_qr_codes': total_qr_codes,
+            'Addqrcodes': Addqrcodes,
+            'Attendances': Attendances,
+            'in_courses': in_courses,}
+        return render(request, 'app/class_session.html', context)
+    else:
+        return redirect(reverse('login'))
+
+def overview(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse('login'))
+
+    user = request.user
+    course_id = request.GET.get('course_id') or request.POST.get('course_id')
+    if not course_id:
+        return HttpResponse("Course id not found")
+
+    try:
+        course = Course.objects.get(course_id=course_id)
+    except Course.DoesNotExist:
+        return redirect(reverse('index'))
+
+    if user.groups.filter(name='Instructor').exists():
+        student = user
+        in_courses = in_course.objects.filter(course_id=course)
+        total_students = in_courses.count()
+        Attendances = Attendance.objects.all()
+        Addqrcodes = Addqrcode.objects.values('user').distinct()
+        Addqrcodess = Addqrcode.objects.all()
+        total_qr_codes = len(Addqrcodes)
+    
+        class_session_html = reverse('class_session') + '?qrid=' + str(Attendance.qrid) + 'course_id=' + str(course.course_id)
+        
+
+
+        
+
+        context = {
+            'coursename': course.coursename,
+            'class_session_html':class_session_html,
+            'in_courses': in_courses,
+            'course_id': course.course_id,
+            'total_students': total_students,
+            'total_qr_codes': total_qr_codes,
+            'class_code': Attendance.class_code,
+            'Addqrcodes': Addqrcodes,
+            'Addqrcodess':Addqrcodess,
+            'Attendances': Attendances}
+        
+##        return render(request, 'app/overview.html', {'coursename': course.coursename, 'in_courses': in_courses, 'course_id': course.course_id, 'total_students': total_students})
+##    else:
+##        return HttpResponse("You don't have permission to access this page.")
+        return render(request, 'app/overview.html', context)
+    else:
+        return redirect(reverse('login'))
+
+
+def student(request):
+    if not request.user.is_authenticated:
+        return redirect(reverse('login'))
+
+    user = request.user
+    course_id = request.GET.get('course_id') or request.POST.get('course_id')
+    if not course_id:
+        return HttpResponse("Course id not found")
+
+    try:
+        course = Course.objects.get(course_id=course_id)
+    except Course.DoesNotExist:
+        return redirect(reverse('index'))
+
+    if user.groups.filter(name='Instructor').exists():
+        in_courses = in_course.objects.filter(course_id=course)
+        total_students = in_courses.count()
+        Addqrcodes = Addqrcode.objects.filter(course_id=course)
+        #Addqrcodes = Addqrcode.objects.all()
+        attendances = Attendance.objects.filter(course_id=course)
+        #meetingcodes = attendances
+        total_qr_codes = attendances.count()
+        name_student = in_courses.values_list('student', flat=True)
+       # uploaded = 
+        #student_uploads = Addqrcode.objects.filter()
+
+        context = {
+            'coursename': course.coursename,
+            'in_courses': in_courses,
+            'course_id': course.course_id,
+            'total_students': total_students,
+            'total_qr_codes': total_qr_codes,
+            'name_student': name_student,
+            'Addqrcodes': Addqrcodes, 
+            'class_code': Attendance.class_code, 
+            'attendances': attendances
+            }
+        return render(request, 'app/student.html', context)
+    else:
+        return redirect(reverse('login'))
+    
+def student_attendance (request):
+    if request.user.is_authenticated and request.user.groups.filter(name='Instructor').exists():
+        student = request.GET.get('student')
+        stu = User.objects.filter(id=student).first()
+        course_id = request.GET.get('course_id')
+        course = Course.objects.get(course_id=course_id)
+        attendances = Attendance.objects.filter(course_id=course)
+        att = attendances.last()
+        uploaded = Addqrcode.objects.filter(course_id=course, class_code = att,user=stu).exists()
+
+        meetings = []
+        uploads = []
+        for att in attendances:
+            meetings += [att.time]
+            if Addqrcode.objects.filter(course_id=course, class_code = att,user=stu).exists():
+                uploads += ['Uploaded']
+            else: uploads += ['QR Missing']
+
+        context = {'course_id': course_id, 'student': student, 'attendances': attendances, 
+                   'meetings':meetings, 'uploads':uploads}
+        return render(request, 'app/student_attendance.html', context)
+    else: return redirect(reverse('login'))
+
+

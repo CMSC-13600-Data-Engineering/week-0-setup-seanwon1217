@@ -1,0 +1,30 @@
+{% load static %}
+
+<html>
+<head>
+	<title>Attendance QR Code</title>
+    <style>
+		html, body {
+			height: 100%;
+		}
+		body {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+	</style>
+</head>
+
+<body>
+    <header>
+        <h1>Attendance QR Code</h1>
+    </header>
+    <script type="text/javascript" src="{% static 'qrcode.js' %}" ></script>
+    <div id='ele_qrcode'/>
+    <script type="text/javascript">
+        qr_code = new QRCode(document.getElementById('ele_qrcode'))
+        qr_code.makeCode('{{ class_code }}')
+    </script>
+</body>
+

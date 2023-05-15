@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<html>
+<head>
+	<title>Sign Up</title>
+
+	<style>
+		html, body {
+			height: 100%;
+		}
+		body {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+    table.table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 1rem;
+      background-color: #fff;
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    table.table th,
+    table.table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    table.table th {
+      background-color: #f8f9fa;
+      font-weight: 700;
+    }
+
+    table.table tbody tr:nth-of-type(even) {
+      background-color: #f6f8fa;
+    }
+	</style>
+</head>
+<body>
+  <p class="p1"><span class="s3"><a href="{% url 'index' %}">Home</a></span></p>
+  <p class="p1"><span class="s2">Hi {{ user.username }}!</span> You are an Instructor for Class: {{class1}}</p>
+  <p class="p1"><span class="s3"><a href="{% url 'login' %}">Log In</a></span></p>
+  <p class="p1"><span class="s3"><a href="{% url 'new' %}">Sign Up</a></span></p>
+
+  <table class="table">
+      <thead>
+        <tr>
+          <th>Course Name</th>
+          <th>Instructor</th>
+          <th>Course ID</th>
+          <th>Day of Week</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for attendance in Attendance %}
+          <tr>
+            <td>{{ Attendance.course_id }}</td>
+            <td>{{ Attendance.time|time:"H:i A"}}</td>
+            <td>{{ Attendance.userid }}</td>
+            <td>{{ Attendance.class_code }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</body>
+</html>
+{% endblock %}
